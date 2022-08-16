@@ -15,6 +15,7 @@ public class AnnotationManager {
     //2) scan class marked with annotation "@Table" for annotations "@Column"
     //3) create SQL-query that create corresponding table in DB
 
+
     public static <T> StringBuilder createTable(T entity){
         Class<?> entityClass = entity.getClass();
         Table table = entityClass.getAnnotation(Table.class);
@@ -54,4 +55,5 @@ public class AnnotationManager {
         System.out.println(createTable(someEntity));
 
     }
+
 }
