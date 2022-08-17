@@ -24,7 +24,7 @@ public class Transaction {
     private static final String USER = properties.getProperty("db.username");
     private static final String PASS = properties.getProperty("db.password");
 
-    private Connection connection;
+    private static Connection connection;
 
     // starts new connection
     public void begin() {
