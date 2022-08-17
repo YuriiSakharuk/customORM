@@ -8,13 +8,13 @@ import java.util.Objects;
 @Table(name = "NewTable")
 public class SomeEntity {
 
-    @Column(type = FieldType.INTEGER)
+    @Column(type = FieldType.INTEGER, id = true, primaryKey = true)
     private int id;
 
-    @Column(name = "FirstName", type = FieldType.VARCHAR)
+    @Column(name = "FirstName", type = FieldType.VARCHAR, unique = true, primaryKey = true)
     private String name;
 
-    @Column(type = FieldType.BOOLEAN)
+    @Column(type = FieldType.BOOLEAN, nullable = false)
     private boolean married;
 
     public SomeEntity(int id, String name, boolean married) {
