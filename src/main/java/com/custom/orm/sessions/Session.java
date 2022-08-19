@@ -5,7 +5,7 @@ import java.util.List;
 
 public interface Session{
 
-    <T> T findById(Class<T> objectClass, Object key);
+    <T> T findById(Class<T> objectClass, Long key);
 
     <T> List<T> findAll(Class<T> objectClass);
 

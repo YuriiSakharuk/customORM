@@ -1,16 +1,22 @@
 package com.custom.orm.entity;
 
 import com.custom.orm.annotations.Column;
+import com.custom.orm.annotations.Entity;
 import com.custom.orm.annotations.Id;
 import com.custom.orm.annotations.Table;
 import com.custom.orm.enums.FieldType;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
+@Entity
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "users", schema = "public")
 public class User {
 
