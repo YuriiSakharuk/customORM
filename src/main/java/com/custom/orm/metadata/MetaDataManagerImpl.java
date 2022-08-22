@@ -16,6 +16,7 @@ public class MetaDataManagerImpl implements MetaDataManager{
     public <T> String getTableName(Class<T> object) {
         return ofNullable(object.getAnnotation(Table.class))
                 .map(tableAnnotation -> tableAnnotation.schema() + "." + tableAnnotation.name())
+                .filter(name -> name.length() > 1)
                 .orElse(object.getSimpleName().toLowerCase());
     }
 
@@ -58,5 +59,21 @@ public class MetaDataManagerImpl implements MetaDataManager{
                         .map(Column::name)
                         .orElse(field.getName()))
                 .collect(joining(", "));
+    }
+
+    @Override
+    public String getColumnName(Field field){
+        return  ofNullable(field.getAnnotation(Column.class))
+                .map(Column::name)
+                .filter(name -> name.length() > 0)
+                .orElse(field.getName());
+    }
+
+    @Override
+    public <T> String getTableNameWithoutSchema(Class<T> object){
+        return ofNullable(object.getAnnotation(Table.class))
+                .map(tableAnnotation -> tableAnnotation.name())
+                .filter(name -> name.length() > 0)
+                .orElse(object.getSimpleName().toLowerCase());
     }
 }

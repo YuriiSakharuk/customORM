@@ -11,5 +11,5 @@ public @interface Table {
 
     String name() default "";
 
-    String schema() default "";
+    String schema() default "public";
 }

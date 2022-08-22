@@ -8,7 +8,8 @@ import java.util.Objects;
 @Table(name = "NewTable")
 public class SomeEntity {
 
-    @Column(type = FieldType.INTEGER, id = true, primaryKey = true)
+    @Column(type = FieldType.INTEGER, primaryKey = true)
+    @Id
     private int id;
 
     @Column(name = "FirstName", type = FieldType.VARCHAR, unique = true, primaryKey = true)

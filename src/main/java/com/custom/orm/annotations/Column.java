@@ -1,6 +1,7 @@
 package com.custom.orm.annotations;
 
 import com.custom.orm.enums.FieldType;
+import lombok.NonNull;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
