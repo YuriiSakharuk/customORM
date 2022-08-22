@@ -14,9 +14,18 @@ import java.util.List;
 
 public class SessionImpl implements Session {
 
+    private Transaction transaction;
+
     MetaDataManager metaDataManager = new MetaDataManagerImpl();
 
     FieldsMapper fieldsMapper = new FieldsMapperImpl();
+
+    @Override
+    public Transaction beginTransaction() {
+        transaction = new Transaction();
+        transaction.begin();
+        return transaction;
+    }
 
     @SneakyThrows
     @Override
@@ -24,7 +33,7 @@ public class SessionImpl implements Session {
 
         String sql = "SELECT * FROM %s WHERE %s = ?";
 
-        Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/testdb", "postgres", "123456");
+        Connection connection = transaction.getConnection();
 
         PreparedStatement preparedStatement = connection.prepareStatement(String.format(
                 sql,
@@ -53,7 +62,7 @@ public class SessionImpl implements Session {
 
         String sql = "SELECT * FROM %s";
 
-        Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/testdb", "postgres", "123456");
+        Connection connection = transaction.getConnection();
 
         PreparedStatement preparedStatement = connection.prepareStatement(String.format(sql,
                 metaDataManager.getTableName(object)));
@@ -81,7 +90,7 @@ public class SessionImpl implements Session {
 
         String sql = "INSERT INTO %s (%s) VALUES (%s)";
 
-        Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/testdb", "postgres", "123456");
+        Connection connection = transaction.getConnection();
 
         PreparedStatement preparedStatement = connection.prepareStatement(String.format(
                 sql,
@@ -126,7 +135,7 @@ public class SessionImpl implements Session {
             }
         }
 
-        Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/testdb", "postgres", "123456");
+        Connection connection = transaction.getConnection();
 
         return connection.prepareStatement(String.format(
                 sql,
@@ -141,11 +150,21 @@ public class SessionImpl implements Session {
 
         String sql = "DELETE FROM %s WHERE id = %s";
 
-        Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/testdb", "postgres", "123456");
+        Connection connection = transaction.getConnection();
 
         return connection.prepareStatement(String.format(sql,
                 metaDataManager.getTableName(object.getClass()),
                 metaDataManager.getIdColumnValues(object)))
                 .execute();
+    }
+
+    @Override
+    public void close() {
+        transaction.close();
+    }
+
+    @Override
+    public void cancelQuery() {
+        transaction.rollback();
     }
 }
