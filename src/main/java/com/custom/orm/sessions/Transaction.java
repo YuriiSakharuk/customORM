@@ -24,7 +24,7 @@ public class Transaction {
     private static final String USER = properties.getProperty("db.username");
     private static final String PASS = properties.getProperty("db.password");
 
-    private static Connection connection;
+    private Connection connection;
 
     // starts new connection
     public void begin() {
@@ -44,7 +44,7 @@ public class Transaction {
         System.out.println("Committing connection...");
         try {
             connection.commit();
-            System.out.println("Connection was successfully committed: " + connection);
+            System.out.println("Connection was successfully committed: " + connection + "\n");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -54,7 +54,7 @@ public class Transaction {
         System.out.println("Rollbacking connection");
         try {
             connection.rollback();
-            System.out.println("Connection was successfully rollbacked: " + connection);
+            System.out.println("Connection was successfully rollbacked: " + connection + "\n");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -65,10 +65,13 @@ public class Transaction {
         System.out.println("Closing connection");
         try {
             connection.close();
-            System.out.println("Connection was successfully closed");
+            System.out.println("Connection was successfully closed\n");
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
+    public Connection getConnection() {
+        return connection;
+    }
 }

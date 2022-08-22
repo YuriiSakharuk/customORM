@@ -3,7 +3,7 @@ package com.custom.orm.sessions;
 
 import java.util.List;
 
-public interface Session{
+public interface Session {
 
     <T> T findById(Class<T> objectClass, Long key);
 
@@ -14,4 +14,10 @@ public interface Session{
     <T> boolean update(T object);
 
     <T> boolean delete(T object);
+
+    Transaction beginTransaction();
+
+    void close();
+
+    void cancelQuery();
 }
