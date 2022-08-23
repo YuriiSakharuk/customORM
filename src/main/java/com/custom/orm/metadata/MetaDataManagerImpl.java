@@ -6,7 +6,6 @@ import com.custom.orm.annotations.Id;
 import com.custom.orm.annotations.Table;
 import com.custom.orm.annotations.relations.JoinColumn;
 import com.custom.orm.enums.FieldType;
-
 import java.lang.reflect.Field;
 import java.util.Arrays;
 
@@ -18,8 +17,8 @@ public class MetaDataManagerImpl implements MetaDataManager {
     @Override
     public <T> String getTableName(Class<T> object) {
         return ofNullable(object.getAnnotation(Table.class))
-                .map(tableAnnotation -> tableAnnotation.schema() + "." + tableAnnotation.name())
-                .filter(name -> name.length() > 1)
+                .map(tableAnnotation -> tableAnnotation.schema().equals("") ?
+                        tableAnnotation.name() : tableAnnotation.schema() + "." + tableAnnotation.name())
                 .orElse(object.getSimpleName().toLowerCase());
     }
 

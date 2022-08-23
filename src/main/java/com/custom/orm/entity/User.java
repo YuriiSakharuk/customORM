@@ -4,12 +4,13 @@ import com.custom.orm.annotations.Column;
 import com.custom.orm.annotations.Entity;
 import com.custom.orm.annotations.Id;
 import com.custom.orm.annotations.Table;
-import com.custom.orm.annotations.relations.MappedBy;
+import com.custom.orm.annotations.relations.OneToOne;
+import com.custom.orm.enums.CascadeType;
+import com.custom.orm.enums.FieldType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDate;
 
 @Entity
@@ -32,6 +33,9 @@ public class User {
 
     private Integer age;
 
-    @MappedBy(name = "user")
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private SomeEntity someEntity;
+    
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private Profile profile;
 }
