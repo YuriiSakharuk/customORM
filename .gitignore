@@ -1,0 +1,10 @@
+/.idea/
+/target/
+
+# Package Files #
+*.jar
+*.war
+*.nar
+*.ear
+*.tar.gz
+*.rar

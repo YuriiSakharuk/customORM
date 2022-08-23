@@ -15,7 +15,8 @@ public class MetaDataManagerImpl implements MetaDataManager{
     @Override
     public <T> String getTableName(Class<T> object) {
         return ofNullable(object.getAnnotation(Table.class))
-                .map(tableAnnotation -> tableAnnotation.schema() + "." + tableAnnotation.name())
+                .map(tableAnnotation -> tableAnnotation.schema().equals("") ?
+                        tableAnnotation.name() : tableAnnotation.schema() + "." + tableAnnotation.name())
                 .orElse(object.getSimpleName().toLowerCase());
     }
 
