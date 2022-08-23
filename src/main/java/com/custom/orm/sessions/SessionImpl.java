@@ -1,6 +1,8 @@
 package com.custom.orm.sessions;
 
 import com.custom.orm.annotations.Id;
+import com.custom.orm.annotations.Table;
+import com.custom.orm.annotations.relations.OneToOne;
 import com.custom.orm.mapper.FieldsMapper;
 import com.custom.orm.mapper.FieldsMapperImpl;
 import com.custom.orm.metadata.MetaDataManager;
@@ -101,6 +103,10 @@ public class SessionImpl implements Session {
         int index = 1;
         for(Field declaredField : object.getClass().getDeclaredFields()){
             declaredField.setAccessible(true);
+//            if(declaredField.isAnnotationPresent(OneToOne.class)){
+//                // to do
+//                continue;
+//            }
             preparedStatement.setObject(index++, declaredField.get(object));
         }
         preparedStatement.execute();
