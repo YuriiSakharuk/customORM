@@ -1,8 +1,10 @@
 package com.custom.orm.metadata;
 
 import com.custom.orm.annotations.Column;
+import com.custom.orm.annotations.ComposedPrimaryKey;
 import com.custom.orm.annotations.Id;
 import com.custom.orm.annotations.Table;
+import com.custom.orm.annotations.relations.JoinColumn;
 import com.custom.orm.enums.FieldType;
 
 import java.lang.reflect.Field;
@@ -81,7 +83,7 @@ public class MetaDataManagerImpl implements MetaDataManager {
     @Override
     public <T> String getTableNameWithoutSchema(Class<T> object) {
         return ofNullable(object.getAnnotation(Table.class))
-                .map(tableAnnotation -> tableAnnotation.name())
+                .map(Table::name)
                 .filter(name -> name.length() > 0)
                 .orElse(object.getSimpleName().toLowerCase());
     }
@@ -122,5 +124,103 @@ public class MetaDataManagerImpl implements MetaDataManager {
                 return "BOOLEAN";
         }
         return "BIGINT";
+    }
+
+    /**
+     * This method returns name of the column that is primary key.
+     * It works only with primary key that consists of one column.
+     */
+    @Override
+    public String getPrimaryKeyColumnName(Class<?> entityClass) {
+        return Arrays.stream(entityClass.getDeclaredFields())
+                .filter(field -> field.isAnnotationPresent(Id.class))
+                .map(this::getColumnName)
+                .collect(joining());
+    }
+
+    /**
+     * This method returns names of the columns that compose primary key.
+     * It works only with primary key that consists of a few columns.
+     * Please, note that in order to specify composed primary key, you need to use @ComposedPrimaryKey on each field.
+     * Please, use @ComposedPrimaryKey only if your primary key consists of a few column. Never use this annotation for
+     * a primary key that consists of only one column.
+     */
+    public String getComposedPrimaryKeyColumnsNames(Class<?> entityClass) {
+        return Arrays.stream(entityClass.getDeclaredFields())
+                .filter(field -> field.isAnnotationPresent(ComposedPrimaryKey.class))
+                .map(field -> ofNullable(field.getAnnotation(Column.class))
+                        .map(Column::name)
+                        .filter(name -> name.length() > 0)
+                        .orElse(field.getName()))
+                .collect(joining(", "));
+    }
+
+    /**
+     * This method checks if given entity contains foreign key.
+     */
+    public boolean hasForeignKey(Class<?> entityClass) {
+        return Arrays.stream(entityClass.getDeclaredFields())
+                .noneMatch(field -> field.isAnnotationPresent(JoinColumn.class));
+    }
+
+    /**
+     * This method returns name of the column that is foreign key (in other words, column that contains foreign key).
+     */
+    public String getForeignKeyColumnName(Class<?> entityClass) {
+        if (hasForeignKey(entityClass))
+            throw new RuntimeException(
+                    "Table" + getTableName(entityClass) + "does not contain foreign key!");
+
+        return Arrays.stream(entityClass.getDeclaredFields())
+                .filter(field -> field.isAnnotationPresent(JoinColumn.class))
+                .map(field -> ofNullable(field.getAnnotation(Column.class))
+                        .map(Column::name)
+                        .filter(name -> name.length() > 0)
+                        .orElse(field.getName()))
+                .collect(joining());
+    }
+
+    /**
+     * This method returns name of the constraint that specifies foreign key.
+     */
+    public String getForeignKeyName(Class<?> entityClass) {
+        if (hasForeignKey(entityClass))
+            throw new RuntimeException(
+                    "Table" + getTableName(entityClass) + "does not contain foreign key!");
+
+        return Arrays.stream(entityClass.getDeclaredFields())
+                .filter(field -> field.isAnnotationPresent(JoinColumn.class))
+                .map(field -> field.getAnnotation(JoinColumn.class).name())
+                .collect(joining());
+    }
+
+    /**
+     * This method returns name of the class that foreign key of the given entity references.
+     */
+    public String getForeignKeyReferenceClassName(Class<?> entityClass) {
+        if (hasForeignKey(entityClass))
+            throw new RuntimeException(
+                    "Table" + getTableName(entityClass) + "does not contain foreign key!");
+
+        Class<?> foreignKeyClass = Arrays.stream(entityClass.getDeclaredFields())
+                .filter(field -> field.isAnnotationPresent(JoinColumn.class))
+                .findAny().get().getType();
+
+        return getTableNameWithoutSchema(foreignKeyClass);
+    }
+
+    /**
+     * This method returns name of the column that foreign key of the given entity references.
+     */
+    public String getForeignKeyReferenceColumnName(Class<?> entityClass) {
+        if (hasForeignKey(entityClass))
+            throw new RuntimeException(
+                    "Table" + getTableName(entityClass) + "does not contain foreign key!");
+
+        Class<?> foreignKeyClass = Arrays.stream(entityClass.getDeclaredFields())
+                .filter(field -> field.isAnnotationPresent(JoinColumn.class))
+                .findAny().get().getType();
+
+        return getIdColumnName(foreignKeyClass);
     }
 }
