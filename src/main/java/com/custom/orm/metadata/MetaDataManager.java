@@ -17,4 +17,6 @@ public interface MetaDataManager {
     String getColumnName(Field field);
 
     <T> String getTableNameWithoutSchema(Class<T> object);
+
+    String getColumnType(Field field);
 }

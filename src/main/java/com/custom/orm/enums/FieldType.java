@@ -1,5 +1,5 @@
 package com.custom.orm.enums;
 
 public enum FieldType {
-    VARCHAR, INTEGER, BOOLEAN, DATE
+    VARCHAR, INTEGER, BIGINT, BOOLEAN, DATE, TIME, DATETIME, DEFAULT
 }

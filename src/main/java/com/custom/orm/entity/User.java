@@ -4,7 +4,7 @@ import com.custom.orm.annotations.Column;
 import com.custom.orm.annotations.Entity;
 import com.custom.orm.annotations.Id;
 import com.custom.orm.annotations.Table;
-import com.custom.orm.enums.FieldType;
+import com.custom.orm.annotations.relations.MappedBy;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,8 +27,11 @@ public class User {
 
     private String lastname;
 
-    @Column(name = "birthdate", type = FieldType.DATE)
+    @Column(name = "birthdate") //type = FieldType.DATE)
     private LocalDate birthDate;
 
     private Integer age;
+
+    @MappedBy(name = "user")
+    private SomeEntity someEntity;
 }
