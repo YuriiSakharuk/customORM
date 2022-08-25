@@ -1,7 +1,7 @@
 package com.custom.orm.enums;
 
 public enum CascadeType {
-    ALL;
+    ALL, ADD, DELETE, UPDATE, GET
 
     CascadeType() {
     }

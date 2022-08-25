@@ -11,7 +11,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDate;
 
 @Entity
@@ -29,11 +28,14 @@ public class User {
 
     private String lastname;
 
-    @Column(name = "birthdate", type = FieldType.DATE)
+    @Column(name = "birthdate") //type = FieldType.DATE)
     private LocalDate birthDate;
 
     private Integer age;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private SomeEntity someEntity;
+    
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Profile profile;
 }
