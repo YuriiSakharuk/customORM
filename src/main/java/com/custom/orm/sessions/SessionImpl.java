@@ -33,7 +33,7 @@ public class SessionImpl implements Session {
     @Override
     public <T> T findById(Class<T> object, Long key) {
 
-        String sql = "SELECT * FROM %s WHERE %s = ?";
+        String sql = "SELECT * FROM %s WHERE %s = ? %s";
 
         Connection connection = transaction.getConnection();
 

@@ -32,4 +32,7 @@ public class SomeEntity {
     @OneToOne
     @JoinColumn(name = "fk_user")
     private User user;
+
+    @OneToOne(mappedBy = "someEntity")
+    private Profile profile;
 }

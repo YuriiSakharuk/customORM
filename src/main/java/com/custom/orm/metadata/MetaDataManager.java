@@ -1,6 +1,7 @@
 package com.custom.orm.metadata;
 
 import java.lang.reflect.Field;
+import java.util.Set;
 
 public interface MetaDataManager {
 
@@ -32,5 +33,13 @@ public interface MetaDataManager {
 
     String getForeignKeyReferenceClassName(Class<?> entityClass);
 
+    <T> Class getForeignKeyReferenceClass(Class<T> entityClass);
+
     String getForeignKeyReferenceColumnName(Class<?> entityClass);
+
+    <T> Set<String> getOneToOneForeignKeyClassNames(Class<T> entityClass);
+
+    <T> Set<String> getOneToManyForeignKeyClassNames(Class<T> entityClass);
+
+    <T>Set<String> getManyToOneForeignKeyClassNames(Class<T> entityClass);
 }
