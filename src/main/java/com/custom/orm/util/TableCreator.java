@@ -2,10 +2,10 @@ package com.custom.orm.util;
 
 import com.custom.orm.annotations.Column;
 import com.custom.orm.annotations.ComposedPrimaryKey;
-import com.custom.orm.annotations.Table;
-import com.custom.orm.annotations.relations.JoinColumn;
+import com.custom.orm.annotations.Entity;
 import com.custom.orm.metadata.MetaDataManager;
 import com.custom.orm.metadata.MetaDataManagerImpl;
+
 import java.lang.reflect.Field;
 import java.util.Arrays;
 
@@ -18,11 +18,10 @@ public class TableCreator {
      */
     public <T> String createTableIfNotExists(T entity) {
         Class<?> entityClass = entity.getClass();
-        Table table = entityClass.getAnnotation(Table.class);
         String sql = "CREATE TABLE IF NOT EXISTS %s (%s%s, %s);";
         StringBuilder result = new StringBuilder();
 
-        if (table == null)
+        if (!entityClass.isAnnotationPresent(Entity.class))
             throw new RuntimeException("Entity \"" + metaDataManager.getTableName(entityClass) + "\" not found!");
 
         result.append(String.format(sql, metaDataManager.getTableName(entityClass),
@@ -40,18 +39,27 @@ public class TableCreator {
      * This method returns part of the SQL-query, that specifies foreign key creation. It creates foreign key as a separate
      * constraints and specifies its name. SQL-query will be returned only if entities are properly mapped with @JoinColumn.
      * Otherwise, this method will not affect the basic SQL-query.
+     * Please, note that currently it is not working with composed primary keys. It will be fixed in upcoming changes.
      */
     private String getForeignKeyQuery(Class<?> entityClass) {
-        if (Arrays.stream(entityClass.getDeclaredFields())
-                .noneMatch(field -> field.isAnnotationPresent(JoinColumn.class)))
+        if (!metaDataManager.hasForeignKey(entityClass))
             return "";
 
+        StringBuilder result = new StringBuilder();
         String sql = "CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s(%s)";
 
-        return String.format(sql, metaDataManager.getForeignKeyName(entityClass),
-                metaDataManager.getForeignKeyColumnName(entityClass),
-                metaDataManager.getForeignKeyReferenceClassName(entityClass),
-                metaDataManager.getForeignKeyReferenceColumnName(entityClass));
+        for (Field field : metaDataManager.getForeignKeyColumns(entityClass)) {
+            result.append(String.format(sql, metaDataManager.getForeignKeyName(field),
+                    metaDataManager.getColumnName(field),
+                    metaDataManager.getForeignKeyReferenceClassName(field),
+                    metaDataManager.getForeignKeyReferenceColumnName(field)));
+            result.append(", ");
+        }
+
+        if (result.length() > 1)
+            result.delete(result.length() - 2, result.length());
+
+        return result.toString();
     }
 
     /**
