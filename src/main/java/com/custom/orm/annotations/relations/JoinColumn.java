@@ -1,4 +1,4 @@
-package com.custom.orm.annotations;
+package com.custom.orm.annotations.relations;
 
 import java.lang.annotation.*;
 

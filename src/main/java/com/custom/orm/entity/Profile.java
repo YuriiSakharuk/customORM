@@ -2,7 +2,7 @@ package com.custom.orm.entity;
 
 import com.custom.orm.annotations.Entity;
 import com.custom.orm.annotations.Id;
-import com.custom.orm.annotations.JoinColumn;
+import com.custom.orm.annotations.relations.JoinColumn;
 import com.custom.orm.annotations.relations.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
