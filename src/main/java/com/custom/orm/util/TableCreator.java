@@ -3,6 +3,10 @@ package com.custom.orm.util;
 import com.custom.orm.annotations.Column;
 import com.custom.orm.annotations.ComposedPrimaryKey;
 import com.custom.orm.annotations.Entity;
+import com.custom.orm.annotations.relations.JoinColumn;
+import com.custom.orm.annotations.relations.ManyToOne;
+import com.custom.orm.annotations.relations.OneToMany;
+import com.custom.orm.annotations.relations.OneToOne;
 import com.custom.orm.metadata.MetaDataManager;
 import com.custom.orm.metadata.MetaDataManagerImpl;
 
@@ -69,6 +73,12 @@ public class TableCreator {
     private <T> StringBuilder getTableNamesTypesConstraintsQuery(Class<T> entityClass) {
         StringBuilder result = new StringBuilder();
         for (Field field : entityClass.getDeclaredFields()) {
+            if ((field.isAnnotationPresent(OneToOne.class) ||
+                    field.isAnnotationPresent(OneToMany.class) ||
+                    field.isAnnotationPresent(ManyToOne.class)) &&
+                    !field.isAnnotationPresent(JoinColumn.class))
+                continue;
+
             result.append(String.format("%s %s %s, ", metaDataManager.getColumnName(field),
                     metaDataManager.getColumnType(field),
                     getConstraints(field)));
