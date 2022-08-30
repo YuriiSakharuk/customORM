@@ -79,8 +79,7 @@ public class TableCreator {
                     !field.isAnnotationPresent(JoinColumn.class))
                 continue;
 
-            result.append(String.format("%s %s %s, ", field.isAnnotationPresent(JoinColumn.class)?
-                            field.getAnnotation(JoinColumn.class).name() : metaDataManager.getColumnName(field),
+            result.append(String.format("%s %s %s, ", metaDataManager.getColumnName(field),
                     metaDataManager.getColumnType(field),
                     getConstraints(field)));
 
