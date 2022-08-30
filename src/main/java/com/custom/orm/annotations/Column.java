@@ -16,9 +16,7 @@ public @interface Column {
 
     boolean unique() default false;
 
-    boolean primaryKey() default false;
+    //boolean composedPrimaryKey() default false;
 
-    boolean id() default false;
-
-    FieldType type();
+    FieldType type() default FieldType.DEFAULT;
 }

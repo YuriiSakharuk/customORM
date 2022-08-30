@@ -8,6 +8,7 @@ import com.custom.orm.mapper.FieldsMapper;
 import com.custom.orm.mapper.FieldsMapperImpl;
 import com.custom.orm.metadata.MetaDataManager;
 import com.custom.orm.metadata.MetaDataManagerImpl;
+import com.custom.orm.util.TableCreator;
 import lombok.SneakyThrows;
 
 import java.lang.reflect.Field;
@@ -24,6 +25,8 @@ public class SessionImpl implements Session {
     MetaDataManager metaDataManager = new MetaDataManagerImpl();
 
     FieldsMapper fieldsMapper = new FieldsMapperImpl();
+
+    TableCreator tableCreator = new TableCreator();
 
     @Override
     public Transaction beginTransaction() {
@@ -103,6 +106,8 @@ public class SessionImpl implements Session {
     @Override
     public <T> void create(T object) {
         //There should be a check to see if such a table exists in the database, method from Yura
+        //System.out.println(tableCreator.createTableIfNotExists(object));
+
 
         String sql = "INSERT INTO %s (%s) VALUES (%s)";
 
@@ -201,6 +206,20 @@ public class SessionImpl implements Session {
         String sql = "DELETE FROM %s WHERE id = %s";
 
         Connection connection = transaction.getConnection();
+
+        List<Field> oneToOneFields = Arrays.stream(object.getClass().getDeclaredFields())
+                .filter(field -> field.isAnnotationPresent(OneToOne.class))
+                .collect(Collectors.toList());
+
+        for (Field oneToOneField : oneToOneFields) {
+            if(Arrays.asList(oneToOneField.getAnnotation(OneToOne.class).cascade()).contains(CascadeType.ALL) ||
+                    Arrays.asList(oneToOneField.getAnnotation(OneToOne.class).cascade()).contains(CascadeType.REMOVE)){
+                Object obj = object.getClass().getMethod("get" + fieldsMapper.firstLetterWordToUpperCase(oneToOneField.getName())).invoke(object);
+                if(obj!=null) {
+                   delete(obj);
+                }
+            }
+        }
 
         return connection.prepareStatement(String.format(sql,
                 metaDataManager.getTableName(object.getClass()),

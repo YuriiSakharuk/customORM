@@ -13,17 +13,11 @@ public class ORMRunner {
     public static void main(String[] args) {
 
         //Create objects
-        User user1 = User.builder()
-                .id(1L)
+        User user = User.builder()
                 .firstname("Stepan")
                 .lastname("Giga")
                 .birthDate(LocalDate.of(2000, 1, 20))
                 .age(600)
-                .build();
-
-        User user2 = User.builder()
-                .id(1L)
-                .age(350)
                 .build();
 
         Session session = new SessionImpl();
@@ -31,18 +25,20 @@ public class ORMRunner {
         Transaction transaction = session.beginTransaction();
 
         //Inserting an object into a table
-        session.create(user1);
+        session.create(user);
         transaction.commit();
 
         //Find an entry in the table by id
         transaction = session.beginTransaction();
-        User userFromDB = session.findById(User.class , 1L);
+        User userFromDB = session.findById(User.class , user.getId());
         System.out.println(userFromDB.toString());
         transaction.commit();
 
+        user.setAge(300);
+
         //Update table
         transaction = session.beginTransaction();
-        session.update(user2);
+        session.update(user);
         transaction.commit();
 
         //Find all entries in the table
@@ -53,7 +49,7 @@ public class ORMRunner {
 
         //Delete an entry in the table
         transaction = session.beginTransaction();
-        session.delete(user1);
+        session.delete(user);
         transaction.commit();
 
         session.close();

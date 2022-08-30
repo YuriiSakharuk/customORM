@@ -20,13 +20,17 @@ public class Profile {
     private Long id;
 
     @OneToOne
-    @JoinColumn(name="user_id")
+    @JoinColumn(name = "user_id")
     private User user;
 
     private String passport;
 
-    public void setUser(User user){
+//    @OneToOne
+//    @JoinColumn(name = "fk_someEntity")
+//    private SomeEntity someEntity;
+
+    public void setUser(User user) {
         user.setProfile(this);
-        this.user=user;
+        this.user = user;
     }
 }

@@ -33,6 +33,11 @@ public class ORMRunnerOneToOne {
         session.create(user);
         transaction.commit();
 
+        //Delete an entry in the table
+        transaction = session.beginTransaction();
+        session.delete(user);
+        transaction.commit();
+
         session.close();
     }
 }

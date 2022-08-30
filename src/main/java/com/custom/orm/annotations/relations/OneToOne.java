@@ -1,7 +1,6 @@
 package com.custom.orm.annotations.relations;
 
 import com.custom.orm.enums.CascadeType;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
