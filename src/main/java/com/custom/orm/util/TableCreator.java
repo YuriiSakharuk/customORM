@@ -53,7 +53,7 @@ public class TableCreator {
         String sql = "CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s(%s)";
 
         for (Field field : metaDataManager.getForeignKeyColumns(entityClass)) {
-            result.append(String.format(sql, metaDataManager.getForeignKeyName(field),
+            result.append(String.format(sql, metaDataManager.getForeignKeyName(entityClass, field),
                     metaDataManager.getColumnName(field),
                     metaDataManager.getForeignKeyReferenceClassName(field),
                     metaDataManager.getForeignKeyReferenceColumnName(field)));
@@ -79,7 +79,8 @@ public class TableCreator {
                     !field.isAnnotationPresent(JoinColumn.class))
                 continue;
 
-            result.append(String.format("%s %s %s, ", metaDataManager.getColumnName(field),
+            result.append(String.format("%s %s %s, ", field.isAnnotationPresent(JoinColumn.class)?
+                            field.getAnnotation(JoinColumn.class).name() : metaDataManager.getColumnName(field),
                     metaDataManager.getColumnType(field),
                     getConstraints(field)));
 

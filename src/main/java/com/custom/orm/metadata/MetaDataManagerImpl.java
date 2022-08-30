@@ -76,10 +76,12 @@ public class MetaDataManagerImpl implements MetaDataManager {
      */
     @Override
     public String getColumnName(Field field) {
-        return ofNullable(field.getAnnotation(Column.class))
-                .map(Column::name)
-                .filter(name -> name.length() > 0)
-                .orElse(field.getName());
+        return ofNullable(field.getAnnotation(JoinColumn.class))
+                .map(JoinColumn::name)
+                .orElse(ofNullable(field.getAnnotation(Column.class))
+                        .map(Column::name)
+                        .orElse(field.getName()));
+
     }
 
     /**
@@ -224,7 +226,7 @@ public class MetaDataManagerImpl implements MetaDataManager {
 
         return Arrays.stream(entityClass.getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(JoinColumn.class))
-                .map(field -> field.getAnnotation(JoinColumn.class).name())
+                .map(field -> getForeignKeyName(entityClass, field))
                 .collect(Collectors.toSet());
     }
 
@@ -232,12 +234,14 @@ public class MetaDataManagerImpl implements MetaDataManager {
      * This method returns name of the constraint that specifies foreign key of the given field.
      */
     @Override
-    public String getForeignKeyName(Field field) {
+    public String getForeignKeyName(Class<?> entityClass, Field field) {
         if (!isForeignKey(field))
             throw new RuntimeException(
                     "Column " + getColumnName(field) + " does not contain foreign key!");
 
-        return field.getAnnotation(JoinColumn.class).name();
+        String result = "fk_%s_%s";
+        return String.format(result, getForeignKeyReferenceClassName(field),
+                getTableNameWithoutSchema(entityClass));
     }
 
     /**
@@ -278,7 +282,7 @@ public class MetaDataManagerImpl implements MetaDataManager {
 
         return Arrays.stream(entityClass.getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(JoinColumn.class))
-                .map(field -> field.getType())
+                .map(Field::getType)
                 .collect(Collectors.toSet());
     }
 
@@ -331,6 +335,7 @@ public class MetaDataManagerImpl implements MetaDataManager {
     public <T> Set<String> getOneToOneForeignKeyClassNames(Class<T> entityClass) {
         if (Arrays.stream(entityClass.getDeclaredFields())
                 .anyMatch(field -> field.isAnnotationPresent(OneToOne.class)))
+
             return Arrays.stream(entityClass.getDeclaredFields())
                     .filter(field -> field.isAnnotationPresent(OneToOne.class))
                     .filter(field -> field.getAnnotation(OneToOne.class).mappedBy().length() > 0)

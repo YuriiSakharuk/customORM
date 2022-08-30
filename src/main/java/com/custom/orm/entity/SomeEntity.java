@@ -3,6 +3,7 @@ package com.custom.orm.entity;
 import com.custom.orm.annotations.*;
 import com.custom.orm.annotations.relations.JoinColumn;
 import com.custom.orm.annotations.relations.OneToOne;
+import com.custom.orm.enums.CascadeType;
 import com.custom.orm.enums.FieldType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,9 +31,9 @@ public class SomeEntity {
     private boolean married;
 
     @OneToOne
-    @JoinColumn(name = "fk_user")
+    @JoinColumn(name = "person_id")
     private User person;
 
-    @OneToOne(mappedBy = "someEntity")
+    @OneToOne(mappedBy = "someEntity", cascade = CascadeType.GET)
     private Profile profile;
 }

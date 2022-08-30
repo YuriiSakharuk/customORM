@@ -1,30 +1,14 @@
 package com.custom.orm.mapper;
 
-import com.custom.orm.annotations.Column;
-import com.custom.orm.entity.Profile;
-import com.custom.orm.entity.SomeEntity;
-import com.custom.orm.entity.User;
 import com.custom.orm.metadata.MetaDataManager;
 import com.custom.orm.metadata.MetaDataManagerImpl;
-
 import java.lang.reflect.Field;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static java.util.Optional.ofNullable;
-
 public class EntitiesMapperImpl implements EntitiesMapper {
 
     private static final MetaDataManager metaDataManager = new MetaDataManagerImpl();
-
-    //For local testing.
-    public static void main(String[] args) {
-        User user = new User();
-        SomeEntity someEntity = new SomeEntity();
-        Profile profile = new Profile();
-
-        // System.out.println(getFindQuery(user.getClass()));
-    }
 
     /**
      * This method returns SQL-query, that specifies JOIN-action for find-methods (this query should be attached to the
@@ -38,7 +22,7 @@ public class EntitiesMapperImpl implements EntitiesMapper {
      */
     @Override
     public <T> String getFindQuery(Class<T> entityClass) {
-        String sql = "";
+        String sql;
 
         Set<String> oneToOneForeignKeyClassNames = metaDataManager.getOneToOneForeignKeyClassNames(entityClass);
         Set<String> oneToManyForeignKeyClassNames = metaDataManager.getOneToManyForeignKeyClassNames(entityClass);
@@ -75,10 +59,7 @@ public class EntitiesMapperImpl implements EntitiesMapper {
                     foreignKeyClassName + "." + metaDataManager.getForeignKeyColumns(foreignKeyClass)
                             .stream()
                             .filter(field -> field.getType().isAssignableFrom(entityClass))
-                            .map(field -> ofNullable(field.getAnnotation(Column.class))
-                            .map(Column::name)
-                            .filter(name -> name.length() > 0)
-                            .orElse(field.getName()))
+                            .map(metaDataManager::getColumnName)
                             .collect(Collectors.joining())));
         }
         return result.toString();
@@ -100,7 +81,7 @@ public class EntitiesMapperImpl implements EntitiesMapper {
                     metaDataManager.getTableNameWithoutSchema(entityClass) + "."
                             + metaDataManager.getColumnName(field)));
         }
-        result.delete(result.length() - 1, result.length() );
+        result.delete(result.length() - 1, result.length());
 
         return result.toString();
     }

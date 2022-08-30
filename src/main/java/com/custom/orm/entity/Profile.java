@@ -26,7 +26,7 @@ public class Profile {
     private String passport;
 
     @OneToOne
-    @JoinColumn(name = "fk_someEntity")
+    @JoinColumn(name = "someEntity_id")
     private SomeEntity someEntity;
 
     public void setUser(User user) {

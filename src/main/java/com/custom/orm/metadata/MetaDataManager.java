@@ -35,7 +35,7 @@ public interface MetaDataManager {
 
     Set<String> getForeignKeyNames(Class<?> entityClass);
 
-    String getForeignKeyName(Field field);
+    String getForeignKeyName(Class<?> entityClass, Field field);
 
     Set<String> getForeignKeyReferenceClassNames(Class<?> entityClass);
 
