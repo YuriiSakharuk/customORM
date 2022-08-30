@@ -12,5 +12,5 @@ public @interface ManyToMany {
 
     String mappedBy() default "";
 
-    CascadeType[] cascadeType() default {};
+    CascadeType[] cascade() default {};
 }

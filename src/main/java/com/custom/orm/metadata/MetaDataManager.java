@@ -27,15 +27,27 @@ public interface MetaDataManager {
 
     boolean hasForeignKey(Class<?> entityClass);
 
-    String getForeignKeyColumnName(Class<?> entityClass);
+    boolean isForeignKey(Field field);
 
-    String getForeignKeyName(Class<?> entityClass);
+    Set<String> getForeignKeyColumnNames(Class<?> entityClass);
 
-    String getForeignKeyReferenceClassName(Class<?> entityClass);
+    Set<Field> getForeignKeyColumns(Class<?> entityClass);
 
-    <T> Class getForeignKeyReferenceClass(Class<T> entityClass);
+    Set<String> getForeignKeyNames(Class<?> entityClass);
 
-    String getForeignKeyReferenceColumnName(Class<?> entityClass);
+    String getForeignKeyName(Class<?> entityClass, Field field);
+
+    Set<String> getForeignKeyReferenceClassNames(Class<?> entityClass);
+
+    String getForeignKeyReferenceClassName(Field field);
+
+    Set<Class<?>> getForeignKeyReferenceClasses(Class<?> entityClass);
+
+    <T> Class getForeignKeyReferenceClass(Field field);
+
+    Set<String> getForeignKeyReferenceColumnNames(Class<?> entityClass);
+
+    String getForeignKeyReferenceColumnName(Field field);
 
     <T> Set<String> getOneToOneForeignKeyClassNames(Class<T> entityClass);
 

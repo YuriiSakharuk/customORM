@@ -19,18 +19,18 @@ public class Profile {
     @Id
     private Long id;
 
-    //@OneToOne
-   // @JoinColumn(name = "user_id")
-    private User user;
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    private User person;
 
     private String passport;
 
     @OneToOne
-    @JoinColumn(name = "fk_someEntity")
+    @JoinColumn(name = "someEntity_id")
     private SomeEntity someEntity;
 
     public void setUser(User user) {
         user.setProfile(this);
-        this.user = user;
+        this.person = user;
     }
 }

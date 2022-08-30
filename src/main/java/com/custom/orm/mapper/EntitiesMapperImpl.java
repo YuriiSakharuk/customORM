@@ -1,12 +1,10 @@
 package com.custom.orm.mapper;
 
-import com.custom.orm.entity.Profile;
-import com.custom.orm.entity.SomeEntity;
-import com.custom.orm.entity.User;
 import com.custom.orm.metadata.MetaDataManager;
 import com.custom.orm.metadata.MetaDataManagerImpl;
-
+import java.lang.reflect.Field;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class EntitiesMapperImpl implements EntitiesMapper {
 
@@ -17,14 +15,14 @@ public class EntitiesMapperImpl implements EntitiesMapper {
      * SELECT-query). It should form a row of JOIN-queries corresponding to the entity mapping (currently, it works,
      * if entity has any number of parent-mappings (so entity may have any number of @OneToOne(mappedBy),
      *
-     * @OneToMany(mappedBy) or @ManyToOne(mappedBy)), and/or ONLY ONE child-mapping
-     * (so entity can have only one @JoinColumn). This bug will be soon fixed.).
+     * @OneToMany(mappedBy) or @ManyToOne(mappedBy)), and/or any number of child-mapping. It does not work properly with
+     * composed primary keys, but this bug will be fixed soon.
      * Please, note that it does not work with @ManyToMany.
      * Please, note that in the upcoming changes this method will work only if parent-entity has CascadeType "ALL" or "GET"
      */
     @Override
     public <T> String getFindQuery(Class<T> entityClass) {
-        String sql = "";
+        String sql;
 
         Set<String> oneToOneForeignKeyClassNames = metaDataManager.getOneToOneForeignKeyClassNames(entityClass);
         Set<String> oneToManyForeignKeyClassNames = metaDataManager.getOneToManyForeignKeyClassNames(entityClass);
@@ -46,7 +44,7 @@ public class EntitiesMapperImpl implements EntitiesMapper {
      * This method returns JOIN-query for parent-mappings (so for @OneToOne(mappedBy), @OneToMany(mappedBy)
      * or @ManyToOne(mappedBy))  /
      */
-    private  <T> String getParentFindQuery(Set<String> classNames, Class<T> entityClass) throws
+    private <T> String getParentFindQuery(Set<String> classNames, Class<T> entityClass) throws
             ClassNotFoundException {
         StringBuilder result = new StringBuilder();
 
@@ -58,33 +56,33 @@ public class EntitiesMapperImpl implements EntitiesMapper {
                     metaDataManager.getTableNameWithoutSchema(foreignKeyClass),
                     metaDataManager.getTableNameWithoutSchema(entityClass)
                             + "." + metaDataManager.getIdColumnName(entityClass),
-                    foreignKeyClassName + "." + metaDataManager.getForeignKeyColumnName(foreignKeyClass)));
+                    foreignKeyClassName + "." + metaDataManager.getForeignKeyColumns(foreignKeyClass)
+                            .stream()
+                            .filter(field -> field.getType().isAssignableFrom(entityClass))
+                            .map(metaDataManager::getColumnName)
+                            .collect(Collectors.joining())));
         }
         return result.toString();
     }
 
     /**
      * This method returns JOIN-query for child-mapping (so for @JoinColumn).
-     * Please, note that currently it is working only, if entity has one @JoinColumn (see the reasons in getFindQuery)
      */
-    private  <T> String getChildFindQuery(Class<T> entityClass) {
+    private <T> String getChildFindQuery(Class<T> entityClass) {
         StringBuilder result = new StringBuilder();
-        String sql = "LEFT JOIN %s ON %s = %s";
-        Class referenceClass = metaDataManager.getForeignKeyReferenceClass(entityClass);
-        String referenceClassName = metaDataManager.getForeignKeyReferenceClassName(entityClass);
+        String sql = "LEFT JOIN %s ON %s = %s ";
 
-        return String.format(sql, referenceClassName,
-                referenceClassName + "." + metaDataManager.getIdColumnName(referenceClass),
-                metaDataManager.getTableNameWithoutSchema(entityClass) + "."
-                        + metaDataManager.getForeignKeyColumnName(entityClass));
-    }
+        for (Field field : metaDataManager.getForeignKeyColumns(entityClass)) {
+            Class referenceClass = metaDataManager.getForeignKeyReferenceClass(field);
+            String referenceClassName = metaDataManager.getForeignKeyReferenceClassName(field);
 
-    //For local testing.
-    public static void main(String[] args) {
-        User user = new User();
-        SomeEntity someEntity = new SomeEntity();
-        Profile profile = new Profile();
+            result.append(String.format(sql, referenceClassName,
+                    referenceClassName + "." + metaDataManager.getIdColumnName(referenceClass),
+                    metaDataManager.getTableNameWithoutSchema(entityClass) + "."
+                            + metaDataManager.getColumnName(field)));
+        }
+        result.delete(result.length() - 1, result.length());
 
-       // System.out.println(getFindQuery(user.getClass()));
+        return result.toString();
     }
 }

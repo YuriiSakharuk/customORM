@@ -9,5 +9,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface JoinColumn {
 
+    /**
+     * Specifies the name of the corresponding foreign key column in the table (most common - "fieldName_id")
+     */
     String name();
 }
