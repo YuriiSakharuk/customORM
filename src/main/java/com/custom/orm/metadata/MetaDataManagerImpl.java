@@ -79,6 +79,7 @@ public class MetaDataManagerImpl implements MetaDataManager {
         return ofNullable(field.getAnnotation(JoinColumn.class))
                 .map(JoinColumn::name)
                 .orElse(ofNullable(field.getAnnotation(Column.class))
+                        .filter(annotation -> annotation.name().length() > 0)
                         .map(Column::name)
                         .orElse(field.getName()));
 
