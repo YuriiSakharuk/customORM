@@ -21,7 +21,7 @@ public class Profile {
 
     @OneToOne
     @JoinColumn(name = "user_id")
-    private User user;
+    private User person;
 
     private String passport;
 
@@ -31,6 +31,6 @@ public class Profile {
 
     public void setUser(User user) {
         user.setProfile(this);
-        this.user = user;
+        this.person = user;
     }
 }

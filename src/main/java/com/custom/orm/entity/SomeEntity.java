@@ -19,11 +19,11 @@ public class SomeEntity {
 
 
     @Id
-    @ComposedPrimaryKey
+   // @ComposedPrimaryKey
     private int id;
 
     @Column(name = "FirstName", type = FieldType.VARCHAR, unique = true)
-    @ComposedPrimaryKey
+   // @ComposedPrimaryKey
     private String name;
 
     @Column(type = FieldType.BOOLEAN, nullable = false)
@@ -31,7 +31,7 @@ public class SomeEntity {
 
     @OneToOne
     @JoinColumn(name = "fk_user")
-    private User user;
+    private User person;
 
     @OneToOne(mappedBy = "someEntity")
     private Profile profile;

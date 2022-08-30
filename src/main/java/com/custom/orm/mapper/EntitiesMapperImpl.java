@@ -1,5 +1,6 @@
 package com.custom.orm.mapper;
 
+import com.custom.orm.annotations.Column;
 import com.custom.orm.entity.Profile;
 import com.custom.orm.entity.SomeEntity;
 import com.custom.orm.entity.User;
@@ -8,6 +9,9 @@ import com.custom.orm.metadata.MetaDataManagerImpl;
 
 import java.lang.reflect.Field;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import static java.util.Optional.ofNullable;
 
 public class EntitiesMapperImpl implements EntitiesMapper {
 
@@ -68,7 +72,14 @@ public class EntitiesMapperImpl implements EntitiesMapper {
                     metaDataManager.getTableNameWithoutSchema(foreignKeyClass),
                     metaDataManager.getTableNameWithoutSchema(entityClass)
                             + "." + metaDataManager.getIdColumnName(entityClass),
-                    foreignKeyClassName + "." + metaDataManager.getForeignKeyColumnNames(foreignKeyClass)));
+                    foreignKeyClassName + "." + metaDataManager.getForeignKeyColumns(foreignKeyClass)
+                            .stream()
+                            .filter(field -> field.getType().isAssignableFrom(entityClass))
+                            .map(field -> ofNullable(field.getAnnotation(Column.class))
+                            .map(Column::name)
+                            .filter(name -> name.length() > 0)
+                            .orElse(field.getName()))
+                            .collect(Collectors.joining())));
         }
         return result.toString();
     }
@@ -89,7 +100,7 @@ public class EntitiesMapperImpl implements EntitiesMapper {
                     metaDataManager.getTableNameWithoutSchema(entityClass) + "."
                             + metaDataManager.getColumnName(field)));
         }
-        result.delete(result.length() - 2, result.length() - 1);
+        result.delete(result.length() - 1, result.length() );
 
         return result.toString();
     }
