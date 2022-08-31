@@ -26,12 +26,17 @@ public class ORMRunnerOneToOne {
 
         profile.setUser(user);
 
+        System.out.println("Profile before: " + user.getProfile().getPassport());
+
         Session session = new SessionImpl();
         Transaction transaction = session.beginTransaction();
 
         //Inserting an object into a table
         session.create(user);
         transaction.commit();
+
+        User user1 = session.findById(User.class, user.getId());
+        System.out.println("Profile after: " + user1.getProfile().getPassport());
 
         //Delete an entry in the table
         transaction = session.beginTransaction();

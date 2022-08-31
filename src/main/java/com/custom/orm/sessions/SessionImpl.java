@@ -4,6 +4,8 @@ import com.custom.orm.annotations.Id;
 import com.custom.orm.annotations.relations.JoinColumn;
 import com.custom.orm.annotations.relations.OneToOne;
 import com.custom.orm.enums.CascadeType;
+import com.custom.orm.mapper.EntitiesMapper;
+import com.custom.orm.mapper.EntitiesMapperImpl;
 import com.custom.orm.mapper.FieldsMapper;
 import com.custom.orm.mapper.FieldsMapperImpl;
 import com.custom.orm.metadata.MetaDataManager;
@@ -28,6 +30,8 @@ public class SessionImpl implements Session {
 
     TableCreator tableCreator = new TableCreator();
 
+    private final EntitiesMapper entitiesMapper = new EntitiesMapperImpl();
+
     @Override
     public Transaction beginTransaction() {
         transaction = new Transaction();
@@ -45,13 +49,13 @@ public class SessionImpl implements Session {
     @Override
     public <T> T findById(Class<T> object, Long key) {
 
-        String sql = "SELECT * FROM %s WHERE %s = ?";
+        String sql = "%s WHERE %s = ?;";
 
         Connection connection = transaction.getConnection();
 
         PreparedStatement preparedStatement = connection.prepareStatement(String.format(
                 sql,
-                metaDataManager.getTableName(object),
+                entitiesMapper.getFindQuery(object),
                 metaDataManager.getIdColumnName(object)));
 
         preparedStatement.setLong(1, key);
@@ -83,7 +87,7 @@ public class SessionImpl implements Session {
     @Override
     public <T> List<T> findAll(Class<T> object) {
 
-        String sql = "SELECT * FROM %s";
+        String sql = entitiesMapper.getFindQuery(object);
 
         Connection connection = transaction.getConnection();
 
