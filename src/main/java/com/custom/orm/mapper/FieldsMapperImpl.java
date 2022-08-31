@@ -12,6 +12,14 @@ import java.time.LocalDate;
 
 public class FieldsMapperImpl implements FieldsMapper{
 
+    /*
+    * This method defines the logic of writing data from the database to a new instance
+    * of the object according to the annotations that mark the fields in the object class.
+    * The field of the object marked with the @Id annotation receives a record from the column of the table, which is the primary key.
+    * Fields marked with the @Column annotation receive data from table columns according to the name specified in the Column annotation.
+    * Fields marked with the annotation @OneToOne are skipped.
+    * Fields of the object that are not marked by any annotation are filled according to the name of this field.
+    * */
     @Override
     public <T> void fillFields(Class<T> object, T entity, ResultSet resultSet, Field field) {
         if (field.isAnnotationPresent(Id.class)) {
@@ -21,17 +29,27 @@ public class FieldsMapperImpl implements FieldsMapper{
             String columnInfo = field.getAnnotation(Column.class).name();
             fillField(object, entity, resultSet, field, columnInfo);
         } else if(field.isAnnotationPresent(OneToOne.class)) {
-            boolean q = true;
+            boolean mock = true;   // temporary solution.
         } else {
             String columnInfo = field.getName();
             fillField(object, entity, resultSet, field, columnInfo);
         }
     }
 
+    /*
+    * This method writes the data received from the database
+    * (according to the type of this data) into the field of the new instance of the object.
+    * */
     @SneakyThrows
     @Override
     public <T> void fillField(Class<T> object, T entity, ResultSet resultSet, Field field, String columnInfo) {
+
+        // Defines the name of the method in the class that will write data
+        // from the database into the field of the instance of this class.
         String setterName = "set" + ((field.getName().charAt(0) + "").toUpperCase()) + field.getName().substring(1);
+
+        // According to the type of data that is returned in ResultSet from the database,
+        // a class method is called that writes this data into the field of the new instance of the object.
         if (field.getType().equals(String.class)) {
             String string = resultSet.getString(columnInfo);
             object.getMethod(setterName, String.class).invoke(entity, string);

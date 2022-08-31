@@ -6,7 +6,6 @@ import com.custom.orm.annotations.Id;
 import com.custom.orm.annotations.Table;
 import com.custom.orm.annotations.relations.OneToOne;
 import com.custom.orm.enums.CascadeType;
-import com.custom.orm.enums.FieldType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,7 +27,7 @@ public class User {
 
     private String lastname;
 
-    @Column(name = "birthdate") //type = FieldType.DATE)
+    @Column(name = "birthdate")
     private LocalDate birthDate;
 
     private Integer age;

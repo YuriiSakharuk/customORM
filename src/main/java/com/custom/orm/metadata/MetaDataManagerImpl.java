@@ -23,6 +23,11 @@ import static java.util.stream.Collectors.joining;
 
 public class MetaDataManagerImpl implements MetaDataManager {
 
+    /*
+    * This method returns the name of the table in the database, which is the analog of the class on the Java application side.
+    * If a class is annotated with the @Table annotation, the table name and database schema are taken from this annotation.
+    * If the class is not annotated with the @Table annotation, the name of the table is taken from the name of that class.
+    * */
     @Override
     public <T> String getTableName(Class<T> object) {
         return ofNullable(object.getAnnotation(Table.class))
@@ -31,6 +36,10 @@ public class MetaDataManagerImpl implements MetaDataManager {
                 .orElse(object.getSimpleName().toLowerCase());
     }
 
+    /*
+    * This method returns the field name that is the primary key in the database.
+    * This field is marked with the @Id annotation.
+    * */
     @Override
     public <T> String getIdColumnName(Class<T> object) {
         return Arrays.stream(object.getDeclaredFields())
@@ -40,8 +49,13 @@ public class MetaDataManagerImpl implements MetaDataManager {
                 .getName();
     }
 
+    /*
+    * This method returns the value of the field that is the primary key in the database.
+    * This field is marked with the @Id annotation.
+    * */
+    @SneakyThrows
     @Override
-    public <T> String getIdColumnValues(T object) throws IllegalAccessException {
+    public <T> String getIdColumnValues(T object) {
         Field idField = Arrays.stream(object.getClass().getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(Id.class))
                 .findFirst()
@@ -52,6 +66,13 @@ public class MetaDataManagerImpl implements MetaDataManager {
         return idField.get(object).toString();
     }
 
+    /*
+    * This method returns a string of "?" characters that correspond to the number of object fields that will need
+    * to be passed in the SQL request to the PreparedStatement.
+    * Fields of the object that are marked with the @Id annotation and the @OneToOne annotation,
+    * but at the same time are not marked with the @JoinColumn annotation - these fields are skipped.
+    * Object fields marked with the @JoinColumn annotation are taken into account.
+    * */
     @SneakyThrows
     @Override
     public <T> String getColumnValues(T object) {
@@ -64,11 +85,18 @@ public class MetaDataManagerImpl implements MetaDataManager {
                 .collect(joining(", "));
     }
 
+    /*
+    * This method returns a string with the names of all the object's fields.
+    * Fields of the object that are marked with the @Id annotation and the @OneToOne annotation,
+    * but at the same time are not marked with the @JoinColumn annotation - these fields are skipped.
+    * Object fields marked with the @JoinColumn annotation are taken into account.
+    * */
     @Override
     public <T> String getColumnNames(T object) {
         Field[] declaredFields = object.getClass().getDeclaredFields();
 
-        List<Field> collect = Arrays.stream(declaredFields).filter(field -> !field.isAnnotationPresent(Id.class))
+        List<Field> collect = Arrays.stream(declaredFields)
+                .filter(field -> !field.isAnnotationPresent(Id.class))
                 .filter(field -> !(field.isAnnotationPresent(OneToOne.class) && !field.isAnnotationPresent(JoinColumn.class)))
                 .collect(Collectors.toList());
 
@@ -95,10 +123,12 @@ public class MetaDataManagerImpl implements MetaDataManager {
      */
     @Override
     public String getColumnName(Field field) {
-        return ofNullable(field.getAnnotation(Column.class))
-                .map(Column::name)
-                .filter(name -> name.length() > 0)
-                .orElse(field.getName());
+        return ofNullable(field.getAnnotation(JoinColumn.class))
+                .map(JoinColumn::name)
+                .orElse(ofNullable(field.getAnnotation(Column.class))
+                        .map(Column::name)
+                        .orElse(field.getName()));
+
     }
 
     /**
@@ -213,14 +243,20 @@ public class MetaDataManagerImpl implements MetaDataManager {
     }
 
     /**
-     * This method returns name of the column that is foreign key (in other words, column that contains foreign key).
-     * Please, note that it works only, if entity has one @JoinColumn. Otherwise, all names will be joined together,
-     * and it will cause incorrect work of the application.
-     * THIS METHOD WILL BE REWRITTEN!
+     * This method checks if given field is foreign key. It returns true if it is annotaded with @JoinColumn.
      */
     @Override
+    public boolean isForeignKey(Field field) {
+        return field.isAnnotationPresent(JoinColumn.class);
+    }
+
+    /**
+     * This method returns set of the names of the columns that are foreign keys (in other words,
+     * columns that contain foreign keys).
+     */
     @Deprecated
-    public String getForeignKeyColumnName(Class<?> entityClass) {
+    @Override
+    public Set<String> getForeignKeyColumnNames(Class<?> entityClass) {
         if (!hasForeignKey(entityClass))
             throw new RuntimeException(
                     "Table " + getTableName(entityClass) + " does not contain foreign key!");
@@ -231,85 +267,135 @@ public class MetaDataManagerImpl implements MetaDataManager {
                         .map(Column::name)
                         .filter(name -> name.length() > 0)
                         .orElse(field.getName()))
-                .collect(joining());
+                .collect(Collectors.toSet());
     }
 
     /**
-     * This method returns name of the constraint that specifies foreign key.
-     * Please, note that it works only, if entity has one @JoinColumn. Otherwise, all names will be joined together,
-     * and it will cause incorrect work of the application.
-     * THIS METHOD WILL BE REWRITTEN!
+     * This method returns set of all fields of the given entity that are foreign key
+     * (in other words, all fields that are annotated with @JoinColumn).
      */
-    @Override
-    @Deprecated
-    public String getForeignKeyName(Class<?> entityClass) {
+    public Set<Field> getForeignKeyColumns(Class<?> entityClass) {
         if (!hasForeignKey(entityClass))
             throw new RuntimeException(
                     "Table " + getTableName(entityClass) + " does not contain foreign key!");
 
         return Arrays.stream(entityClass.getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(JoinColumn.class))
-                .map(field -> field.getAnnotation(JoinColumn.class).name())
-                .collect(joining());
+                .collect(Collectors.toSet());
     }
 
     /**
-     * This method returns name of the class that foreign key of the given entity references.
-     * Please, note that it works only, if entity has one @JoinColumn. Otherwise, it will pick only one first name,
-     * and it will cause incorrect work of the application.
-     * THIS METHOD WILL BE REWRITTEN!
+     * This method returns set of the names of the constraints that specify foreign keys of the given entity.
      */
     @Override
-    @Deprecated
-    public String getForeignKeyReferenceClassName(Class<?> entityClass) {
-        if (!hasForeignKey(entityClass))
-            throw new RuntimeException(
-                    "Table " + getTableName(entityClass) + " does not contain foreign key!");
-
-        Class<?> foreignKeyClass = Arrays.stream(entityClass.getDeclaredFields())
-                .filter(field -> field.isAnnotationPresent(JoinColumn.class))
-                .findAny().get().getType();
-
-        return getTableNameWithoutSchema(foreignKeyClass);
-    }
-
-    /**
-     * This method returns the class that foreign key of the given entity references.
-     * Please, note that it works only, if entity has one @JoinColumn. Otherwise, it will pick only one first class,
-     * and it will cause incorrect work of the application.
-     * THIS METHOD WILL BE REWRITTEN!
-     */
-    @Override
-    @Deprecated
-    public <T> Class getForeignKeyReferenceClass(Class<T> entityClass) {
+    public Set<String> getForeignKeyNames(Class<?> entityClass) {
         if (!hasForeignKey(entityClass))
             throw new RuntimeException(
                     "Table " + getTableName(entityClass) + " does not contain foreign key!");
 
         return Arrays.stream(entityClass.getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(JoinColumn.class))
-                .findAny().get().getType();
+                .map(field -> getForeignKeyName(entityClass, field))
+                .collect(Collectors.toSet());
     }
 
     /**
-     * This method returns name of the column that foreign key of the given entity references.
-     * Please, note that it works only, if entity has one @JoinColumn. Otherwise, it will pick only one first name,
-     * and it will cause incorrect work of the application.
-     * THIS METHOD WILL BE REWRITTEN!
+     * This method returns name of the constraint that specifies foreign key of the given field.
      */
     @Override
-    @Deprecated
-    public String getForeignKeyReferenceColumnName(Class<?> entityClass) {
+    public String getForeignKeyName(Class<?> entityClass, Field field) {
+        if (!isForeignKey(field))
+            throw new RuntimeException(
+                    "Column " + getColumnName(field) + " does not contain foreign key!");
+
+        String result = "fk_%s_%s";
+        return String.format(result, getForeignKeyReferenceClassName(field),
+                getTableNameWithoutSchema(entityClass));
+    }
+
+    /**
+     * This method returns set of the names of the classes that foreign keys of the given entity reference.
+     */
+    @Override
+    public Set<String> getForeignKeyReferenceClassNames(Class<?> entityClass) {
+        if (!hasForeignKey(entityClass))
+            throw new RuntimeException(
+                    "Table " + getTableName(entityClass) + " does not contain foreign key!");
+
+        return Arrays.stream(entityClass.getDeclaredFields())
+                .filter(field -> field.isAnnotationPresent(JoinColumn.class))
+                .map(field -> getTableNameWithoutSchema(field.getType()))
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * This method returns name of the class that foreign key of the given field references.
+     */
+    @Override
+    public String getForeignKeyReferenceClassName(Field field) {
+        if (!isForeignKey(field))
+            throw new RuntimeException(
+                    "Column " + getColumnName(field) + " does not contain foreign key!");
+
+        return getTableNameWithoutSchema(field.getType());
+    }
+
+    /**
+     * This method returns set of the classes that foreign keys of the given entity reference.
+     */
+    @Override
+    public Set<Class<?>> getForeignKeyReferenceClasses(Class<?> entityClass) {
+        if (!hasForeignKey(entityClass))
+            throw new RuntimeException(
+                    "Table " + getTableName(entityClass) + " does not contain foreign key!");
+
+        return Arrays.stream(entityClass.getDeclaredFields())
+                .filter(field -> field.isAnnotationPresent(JoinColumn.class))
+                .map(Field::getType)
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * This method returns the class that foreign key of the given field references.
+     */
+    @Override
+    public <T> Class getForeignKeyReferenceClass(Field field) {
+        if (!isForeignKey(field))
+            throw new RuntimeException(
+                    "Column " + getColumnName(field) + " does not contain foreign key!");
+
+        return field.getType();
+    }
+
+    /**
+     * This method returns set of names of the columns that foreign keys of the given entity reference
+     * (usually they reference to the primary key).
+     */
+    @Override
+    public Set<String> getForeignKeyReferenceColumnNames(Class<?> entityClass) {
         if (!hasForeignKey(entityClass))
             throw new RuntimeException(
                     "Table" + getTableName(entityClass) + "does not contain foreign key!");
 
-        Class<?> foreignKeyClass = Arrays.stream(entityClass.getDeclaredFields())
+        return Arrays.stream(entityClass.getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(JoinColumn.class))
-                .findAny().get().getType();
-
-        return getIdColumnName(foreignKeyClass);
+                .map(field -> getIdColumnName(field.getType()))
+                .collect(Collectors.toSet());
     }
+
+    /**
+     * This method returns name of the column that foreign key of the given field references (usually it references
+     * to the primary key).
+     */
+    @Override
+    public String getForeignKeyReferenceColumnName(Field field) {
+        if (!isForeignKey(field))
+            throw new RuntimeException(
+                    "Column " + getColumnName(field) + " does not contain foreign key!");
+
+        return getIdColumnName(field.getType());
+    }
+
 
     /**
      * This method returns a set of class names of fields of the given entity that are annotated with @OneToOne.
@@ -318,6 +404,7 @@ public class MetaDataManagerImpl implements MetaDataManager {
     public <T> Set<String> getOneToOneForeignKeyClassNames(Class<T> entityClass) {
         if (Arrays.stream(entityClass.getDeclaredFields())
                 .anyMatch(field -> field.isAnnotationPresent(OneToOne.class)))
+
             return Arrays.stream(entityClass.getDeclaredFields())
                     .filter(field -> field.isAnnotationPresent(OneToOne.class))
                     .filter(field -> field.getAnnotation(OneToOne.class).mappedBy().length() > 0)
