@@ -21,16 +21,16 @@ public class Profile {
 
     @OneToOne
     @JoinColumn(name = "user_id")
-    private User person;
+    private User user;
 
     private String passport;
 
-    @OneToOne
-    @JoinColumn(name = "someEntity_id")
-    private SomeEntity someEntity;
+//    @OneToOne
+//    @JoinColumn(name = "fk_someEntity")
+//    private SomeEntity someEntity;
 
     public void setUser(User user) {
         user.setProfile(this);
-        this.person = user;
+        this.user = user;
     }
 }

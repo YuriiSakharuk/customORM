@@ -1,16 +1,14 @@
 package com.custom.orm.annotations.relations;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 @Target({ElementType.METHOD, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface JoinColumn {
-
     /**
      * Specifies the name of the corresponding foreign key column in the table (most common - "fieldName_id")
      */
-    String name();
+    String name() default "";
+
+    String referencedColumnName() default "";
 }

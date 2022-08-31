@@ -14,10 +14,9 @@ public class ORMRunnerOneToOne {
 
         //Create objects
         User user = User.builder()
-                .id(1L)
                 .firstname("Stepan")
-                .lastname("Giga")
-                .birthDate(LocalDate.of(2000, 1, 20))
+                .lastname("Bandera")
+                .birthDate(LocalDate.of(1921, 1, 20))
                 .age(600)
                 .build();
 
@@ -32,7 +31,11 @@ public class ORMRunnerOneToOne {
 
         //Inserting an object into a table
         session.create(user);
+        transaction.commit();
 
+        //Delete an entry in the table
+        transaction = session.beginTransaction();
+        session.delete(user);
         transaction.commit();
 
         session.close();

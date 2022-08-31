@@ -1,6 +1,9 @@
 package com.custom.orm.metadata;
 
 import java.lang.reflect.Field;
+import java.util.List;
+
+import java.lang.reflect.Field;
 import java.util.Set;
 
 public interface MetaDataManager {
@@ -14,6 +17,10 @@ public interface MetaDataManager {
     <T> String getColumnValues(T object);
 
     <T> String getColumnNames(T object);
+
+    <T> List<Field> getDeclaredFields(T object);
+
+    <T> List<Field> getOneToOneDeclaredFields(T object);
 
     String getColumnName(Field field);
 
