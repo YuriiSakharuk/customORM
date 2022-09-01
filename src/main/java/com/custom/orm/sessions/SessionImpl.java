@@ -120,13 +120,13 @@ public class SessionImpl implements Session {
     @SneakyThrows
     @Override
     public <T> void create(T object) {
-        //There should be a check to see if such a table exists in the database, method from Yura
-        //System.out.println(tableCreator.createTableIfNotExists(object));
-
 
         String sql = "INSERT INTO %s (%s) VALUES (%s)";
 
         Connection connection = transaction.getConnection();
+
+        //There should be a check to see if such a table exists in the database, method from Yura
+        connection.prepareStatement(tableCreator.createTableIfNotExists(object)).execute();
 
         PreparedStatement preparedStatement = connection.prepareStatement(String.format(
                 sql,

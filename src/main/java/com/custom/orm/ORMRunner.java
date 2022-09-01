@@ -47,10 +47,10 @@ public class ORMRunner {
         System.out.println(usersList.toString());
         transaction.commit();
 
-        //Delete an entry in the table
-        transaction = session.beginTransaction();
-        session.delete(user);
-        transaction.commit();
+//        //Delete an entry in the table
+//        transaction = session.beginTransaction();
+//        session.delete(user);
+//        transaction.commit();
 
         session.close();
     }
