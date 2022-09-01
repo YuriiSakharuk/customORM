@@ -49,9 +49,6 @@ public class SessionImpl implements Session {
 
         Connection connection = transaction.getConnection();
 
-        if (!metaDataManager.tableExists(connection, object))
-            connection.createStatement().execute(tableCreator.createTableIfNotExists(object));
-
         PreparedStatement preparedStatement = connection.prepareStatement(String.format(
                 sql,
                 metaDataManager.getTableName(object),
@@ -130,6 +127,10 @@ public class SessionImpl implements Session {
         String sql = "INSERT INTO %s (%s) VALUES (%s)";
 
         Connection connection = transaction.getConnection();
+
+        // Checking if corresponding table exists in database.
+        if (!metaDataManager.tableExists(connection, object.getClass()))
+            connection.createStatement().execute(tableCreator.createTableIfNotExists(object));
 
         PreparedStatement preparedStatement = connection.prepareStatement(String.format(
                 sql,
