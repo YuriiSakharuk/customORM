@@ -49,6 +49,9 @@ public class SessionImpl implements Session {
 
         Connection connection = transaction.getConnection();
 
+        if (!metaDataManager.tableExists(connection, object))
+            connection.createStatement().execute(tableCreator.createTableIfNotExists(object));
+
         PreparedStatement preparedStatement = connection.prepareStatement(String.format(
                 sql,
                 metaDataManager.getTableName(object),
