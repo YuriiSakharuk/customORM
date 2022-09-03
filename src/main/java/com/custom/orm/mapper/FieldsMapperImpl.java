@@ -8,11 +8,13 @@ import com.custom.orm.metadata.MetaDataManager;
 import com.custom.orm.metadata.MetaDataManagerImpl;
 import lombok.SneakyThrows;
 
+import java.lang.ref.Reference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.time.LocalDate;
+import java.util.Arrays;
 
 public class FieldsMapperImpl implements FieldsMapper {
 
@@ -28,12 +30,11 @@ public class FieldsMapperImpl implements FieldsMapper {
     * Fields marked with the annotation @OneToOne are skipped.
     * Fields of the object that are not marked by any annotation are filled according to the name of this field.
     * */
-    @SneakyThrows
-    @Override
-    public <T> void fillFields(Class<T> object, T entity, ResultSet resultSet, Field field) {
-        String columnInfo = entitiesMapper.getTableColumnName(object, field);
-        fillField(object, entity, resultSet, field, columnInfo);
-    }
+//    @SneakyThrows
+//    @Override
+//    public <T> void fillFields(Class<T> object, T entity, ResultSet resultSet, Field field) {
+//        fillField(object, entity, resultSet, field, columnInfo);
+//    }
 
     /*
     * This method writes the data received from the database
@@ -41,38 +42,47 @@ public class FieldsMapperImpl implements FieldsMapper {
     * */
     @SneakyThrows
     @Override
-    public <T> void fillField(Class<T> object, T entity, ResultSet resultSet, Field field, String columnInfo) {
+    public <T, E> void fillField(Class<T> entityClass, T entity, ResultSet resultSet, Field field, E previousEntity) {
+        String columnName = entitiesMapper.getTableColumnName(entityClass, field);
 
         // Defines the name of the method in the class that will write data
         // from the database into the field of the instance of this class.
         String setterName = "set" + ((field.getName().charAt(0) + "").toUpperCase()) 
                 + field.getName().substring(1);
+        String getterName = "get" + ((field.getName().charAt(0) + "").toUpperCase())
+                + field.getName().substring(1);
+
 
         // According to the type of data that is returned in ResultSet from the database,
         // a class method is called that writes this data into the field of the new instance of the object.
         if (field.getType().equals(String.class)) {
-            String string = resultSet.getString(columnInfo);
-            object.getMethod(setterName, String.class).invoke(entity, string);
+            String string = resultSet.getString(columnName);
+            entityClass.getMethod(setterName, String.class).invoke(entity, string);
         } else if (field.getType().equals(LocalDate.class)) {
-            LocalDate date = resultSet.getDate(columnInfo).toLocalDate();
-            object.getMethod(setterName, LocalDate.class).invoke(entity, date);
+            LocalDate date = resultSet.getDate(columnName).toLocalDate();
+            entityClass.getMethod(setterName, LocalDate.class).invoke(entity, date);
         } else if (field.getType().equals(Long.class)) {
-            Long longVal = resultSet.getLong(columnInfo);
-            object.getMethod(setterName, Long.class).invoke(entity, longVal);
+            Long longVal = resultSet.getLong(columnName);
+            entityClass.getMethod(setterName, Long.class).invoke(entity, longVal);
         } else if (field.getType().equals(Integer.class)){
-            int diff = resultSet.getInt(columnInfo);
-            object.getMethod(setterName, field.getType()).invoke(entity, diff);
-        } else if (field.isAnnotationPresent(OneToOne.class)) {
-            // add entity field
-            // I should set some object for parent and then fill it's elements
+            int diff = resultSet.getInt(columnName);
+            entityClass.getMethod(setterName, field.getType()).invoke(entity, diff);
+        } else if (previousEntity != null
+                && field.getType().equals(previousEntity.getClass())) {
+            entityClass.getMethod(setterName, previousEntity.getClass()).invoke(entity, previousEntity);
         } else {
-            Class type = metaDataManager.getForeignKeyReferenceClass(field);
+            Class childEntityClass = field.getType();
 
-            object.getMethod(setterName, field.getType())
-                    .invoke(entity, type.getConstructor().newInstance());
+            entityClass.getMethod(setterName, childEntityClass)
+                    .invoke(entity, childEntityClass.getConstructor().newInstance());
 
-            for (Field theField: type.getDeclaredFields()) {
-                fillFields(type, type.getConstructor().newInstance(), resultSet, theField);
+            for (Field theField: childEntityClass.getDeclaredFields()) {
+                fillField(
+                        childEntityClass,
+                        entityClass.getMethod(getterName).invoke(entity),
+                        resultSet,
+                        theField,
+                        entity);
             }
         }
     }

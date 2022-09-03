@@ -56,7 +56,7 @@ public class SessionImpl implements Session {
         PreparedStatement preparedStatement = connection.prepareStatement(String.format(
                 sql,
                 entitiesMapper.getFindQuery(object),
-                metaDataManager.getIdColumnName(object)));
+                metaDataManager.getTableNameWithoutSchema(object) + "." + "id"));
 
         preparedStatement.setLong(1, key);
 
@@ -72,7 +72,7 @@ public class SessionImpl implements Session {
 
         // Filling the fields a new instance of the object with the data receive from the database.
         for (Field field : object.getDeclaredFields()) {
-            fieldsMapper.fillFields(object, entity, resultSet, field);
+            fieldsMapper.fillField(object, entity, resultSet, field, null);
         }
         return entity;
     }
@@ -104,7 +104,7 @@ public class SessionImpl implements Session {
             T entity = object.getDeclaredConstructor().newInstance();
             for (Field field : object.getDeclaredFields()) {
                 field.setAccessible(true);
-                fieldsMapper.fillFields(object, entity, resultSet, field);
+                fieldsMapper.fillField(object, entity, resultSet, field, null);
             }
             result.add(entity);
         }
