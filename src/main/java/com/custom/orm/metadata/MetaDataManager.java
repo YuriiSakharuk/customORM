@@ -1,6 +1,8 @@
 package com.custom.orm.metadata;
 
 import java.lang.reflect.Field;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 
 import java.lang.reflect.Field;
@@ -61,4 +63,6 @@ public interface MetaDataManager {
     <T> Set<String> getOneToManyForeignKeyClassNames(Class<T> entityClass);
 
     <T>Set<String> getManyToOneForeignKeyClassNames(Class<T> entityClass);
+
+    <T> boolean tableExists (Connection connection, Class<T> entityClass) throws SQLException;
 }
