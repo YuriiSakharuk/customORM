@@ -8,10 +8,15 @@ import com.custom.orm.annotations.relations.JoinColumn;
 import com.custom.orm.annotations.relations.ManyToOne;
 import com.custom.orm.annotations.relations.OneToMany;
 import com.custom.orm.annotations.relations.OneToOne;
+import com.custom.orm.enums.CascadeType;
 import com.custom.orm.enums.FieldType;
 import lombok.SneakyThrows;
 
 import java.lang.reflect.Field;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -408,6 +413,8 @@ public class MetaDataManagerImpl implements MetaDataManager {
 
             return Arrays.stream(entityClass.getDeclaredFields())
                     .filter(field -> field.isAnnotationPresent(OneToOne.class))
+                    .filter(field -> Arrays.asList(field.getAnnotation(OneToOne.class).cascade()).contains(CascadeType.ALL) ||
+                            Arrays.asList(field.getAnnotation(OneToOne.class).cascade()).contains(CascadeType.GET))
                     .filter(field -> field.getAnnotation(OneToOne.class).mappedBy().length() > 0)
                     .map(field -> field.getType().getName())
                     .collect(Collectors.toSet());
@@ -421,7 +428,11 @@ public class MetaDataManagerImpl implements MetaDataManager {
     @Override
     public <T> Set<String> getOneToManyForeignKeyClassNames(Class<T> entityClass) {
         if (Arrays.stream(entityClass.getDeclaredFields())
-                .anyMatch(field -> field.isAnnotationPresent(OneToMany.class)))
+                .anyMatch(field -> field.isAnnotationPresent(OneToMany.class) &&
+                        (Arrays.asList(field.getAnnotation(OneToMany.class).cascade()).contains(CascadeType.ALL) ||
+                                Arrays.asList(field.getAnnotation(OneToMany.class).cascade()).contains(CascadeType.GET))
+                )
+        )
             return Arrays.stream(entityClass.getDeclaredFields())
                     .filter(field -> field.isAnnotationPresent(OneToMany.class))
                     .filter(field -> field.getAnnotation(OneToMany.class).mappedBy().length() > 0)
@@ -445,5 +456,13 @@ public class MetaDataManagerImpl implements MetaDataManager {
                     .collect(Collectors.toSet());
 
         return new HashSet<>();
+    }
+
+    public <T> boolean tableExists (Connection connection, Class<T> entityClass) throws SQLException {
+        DatabaseMetaData metaData = connection.getMetaData();
+        ResultSet resultSet = metaData.getTables(
+                null, null, getTableNameWithoutSchema(entityClass), null);
+
+        return resultSet.next();
     }
 }

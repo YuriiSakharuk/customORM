@@ -125,8 +125,9 @@ public class SessionImpl implements Session {
 
         Connection connection = transaction.getConnection();
 
-        //There should be a check to see if such a table exists in the database, method from Yura
-        connection.prepareStatement(tableCreator.createTableIfNotExists(object)).execute();
+        // Checking if corresponding table exists in database.
+        if (!metaDataManager.tableExists(connection, object.getClass()))
+            connection.createStatement().execute(tableCreator.createTableIfNotExists(object));
 
         PreparedStatement preparedStatement = connection.prepareStatement(String.format(
                 sql,
