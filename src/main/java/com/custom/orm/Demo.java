@@ -18,7 +18,10 @@ public class Demo {
         System.out.println(tableCreator.createTableIfNotExists(someEntity.getClass()));
         System.out.println(tableCreator.createTableIfNotExists(profile.getClass()));
         System.out.println(entitiesMapper.getFindQuery(user.getClass()));
-        System.out.println(entitiesMapper.getFindQuery(someEntity.getClass()));
+//        System.out.println(entitiesMapper.getFindQuery(someEntity.getClass()));
+        System.out.println("~~~~~~~~~");
         System.out.println(entitiesMapper.getFindQuery(profile.getClass()));
+
+//        System.out.println(entitiesMapper.getFindQuery(user.getClass()));
     }
 }

@@ -4,11 +4,8 @@ import com.custom.orm.annotations.Column;
 import com.custom.orm.annotations.ComposedPrimaryKey;
 import com.custom.orm.annotations.Id;
 import com.custom.orm.annotations.Table;
-import com.custom.orm.annotations.relations.JoinColumn;
-import com.custom.orm.annotations.relations.ManyToOne;
-import com.custom.orm.annotations.relations.OneToMany;
-import com.custom.orm.annotations.relations.OneToOne;
-import com.custom.orm.enums.CascadeType;
+import com.custom.orm.annotations.relations.*;
+
 import com.custom.orm.enums.FieldType;
 import lombok.SneakyThrows;
 
