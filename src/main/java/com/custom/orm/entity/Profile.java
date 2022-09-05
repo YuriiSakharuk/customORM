@@ -25,10 +25,6 @@ public class Profile {
 
     private String passport;
 
-//    @OneToOne
-//    @JoinColumn(name = "fk_someEntity")
-//    private SomeEntity someEntity;
-
     public void setUser(User user) {
         user.setProfile(this);
         this.user = user;

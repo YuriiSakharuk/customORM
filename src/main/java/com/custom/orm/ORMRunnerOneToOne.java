@@ -7,6 +7,7 @@ import com.custom.orm.sessions.SessionImpl;
 import com.custom.orm.sessions.Transaction;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public class ORMRunnerOneToOne {
 
@@ -19,24 +20,38 @@ public class ORMRunnerOneToOne {
                 .birthDate(LocalDate.of(1921, 1, 20))
                 .age(600)
                 .build();
-
         Profile profile = Profile.builder()
                 .passport("BC254125")
                 .build();
-
         profile.setUser(user);
 
         Session session = new SessionImpl();
         Transaction transaction = session.beginTransaction();
 
         //Inserting an object into a table
+        System.out.println("-----Inserting an object into a table-----");
         session.create(user);
         transaction.commit();
 
-//        //Delete an entry in the table
-//        transaction = session.beginTransaction();
-//        session.delete(user);
-//        transaction.commit();
+        //Find an entry in the table by id
+        System.out.println("-----Find an entry in the table by id-----");
+        User user1 = session.findById(User.class, user.getId());
+        User userFromDB = session.findById(User.class , user.getId());
+        System.out.println("User firstname and lastname from DB: " + userFromDB.getFirstname() + " " + userFromDB.getLastname());
+        transaction.commit();
+
+        //Find all entries in the table
+        System.out.println("----Find all entries in the table----");
+        transaction = session.beginTransaction();
+        List<User> usersList = session.findAll(User.class);
+        System.out.println(usersList.toString());
+        transaction.commit();
+
+        //Delete an entry in the table
+        System.out.println("----Delete an entry in the table-----");
+        transaction = session.beginTransaction();
+        session.delete(user);
+        transaction.commit();
 
         session.close();
     }

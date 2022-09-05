@@ -31,9 +31,6 @@ public class User {
     private LocalDate birthDate;
 
     private Integer age;
-
-//    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-//    private SomeEntity someEntity;
     
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Profile profile;
