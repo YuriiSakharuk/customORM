@@ -6,6 +6,9 @@ import com.custom.orm.annotations.Id;
 import com.custom.orm.annotations.Table;
 import com.custom.orm.annotations.relations.*;
 
+import com.custom.orm.enums.CascadeType;
+import com.custom.orm.annotations.relations.*;
+
 import com.custom.orm.enums.FieldType;
 import lombok.SneakyThrows;
 

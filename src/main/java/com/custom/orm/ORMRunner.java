@@ -17,37 +17,41 @@ public class ORMRunner {
                 .firstname("Stepan")
                 .lastname("Giga")
                 .birthDate(LocalDate.of(2000, 1, 20))
-                .age(600)
+                .age(400)
                 .build();
 
         Session session = new SessionImpl();
 
-        Transaction transaction = session.beginTransaction();
-
         //Inserting an object into a table
+        System.out.println("-----Inserting an object into a table-----");
+        Transaction transaction = session.beginTransaction();
         session.create(user);
         transaction.commit();
 
         //Find an entry in the table by id
+        System.out.println("-----Find an entry in the table by id-----");
         transaction = session.beginTransaction();
         User userFromDB = session.findById(User.class , user.getId());
-        System.out.println(userFromDB.toString());
+        System.out.println("User from DB: " + userFromDB.toString());
         transaction.commit();
 
-        user.setAge(300);
-
         //Update table
+        user.setAge(200);
+        System.out.println("-----Update table-----");
         transaction = session.beginTransaction();
         session.update(user);
+        System.out.println("Update user age: " + user.getAge());
         transaction.commit();
 
         //Find all entries in the table
+        System.out.println("-----Find all entries in the table-----");
         transaction = session.beginTransaction();
         List<User> usersList = session.findAll(User.class);
-        System.out.println(usersList.toString());
+        System.out.println("Collection of entities obtained from the database: " + usersList);
         transaction.commit();
 
         //Delete an entry in the table
+        System.out.println("----Delete an entry in the table-----");
         transaction = session.beginTransaction();
         session.delete(user);
         transaction.commit();

@@ -123,10 +123,7 @@ public class SessionImpl implements Session {
     */
     @SneakyThrows
     @Override
-    public <T> void create(T object) {
-        //There should be a check to see if such a table exists in the database, method from Yura
-        //System.out.println(tableCreator.createTableIfNotExists(object));
-
+    public <T> boolean create(T object) {
 
         String sql = "INSERT INTO %s (%s) VALUES (%s)";
 
@@ -180,6 +177,7 @@ public class SessionImpl implements Session {
                 }
             }
         }
+        return true;
     }
 
     /*

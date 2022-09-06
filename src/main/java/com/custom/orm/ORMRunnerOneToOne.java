@@ -25,31 +25,34 @@ public class ORMRunnerOneToOne {
                 .build();
         profile.setUser(user);
 
-        System.out.println("User: " + user.getFirstname() + " " + user.getLastname());
-        System.out.println("User passport: " + user.getProfile().getPassport());
-
         Session session = new SessionImpl();
         Transaction transaction = session.beginTransaction();
 
         //Inserting an object into a table
+        System.out.println("-----Inserting an object into a table-----");
         session.create(user);
         transaction.commit();
 
-        // the same as user
+        //Find an entry in the table by id
+        System.out.println("-----Find an entry in the table by id-----");
         User user1 = session.findById(User.class, user.getId());
-        System.out.println("User after creation: " + user1.getFirstname() + " " + user1.getLastname());
-        System.out.println("User passport: " + user1.getProfile().getPassport());
+        User userFromDB = session.findById(User.class , user.getId());
+        System.out.println("User from DB: " + userFromDB.toString());
+        transaction.commit();
+
+        //Find all entries in the table
+        System.out.println("----Find all entries in the table----");
+        transaction = session.beginTransaction();
+        List<User> usersList = session.findAll(User.class);
+        System.out.println("Collection of entities obtained from the database: " + usersList);
         transaction.commit();
 
         //Delete an entry in the table
+        System.out.println("----Delete an entry in the table-----");
         transaction = session.beginTransaction();
         session.delete(user);
         transaction.commit();
 
-        transaction = session.beginTransaction();
-        User user2 = session.findById(User.class, user.getId());
-        System.out.println("User after delete: " + user2); // null
-        transaction.commit();
         session.close();
     }
 }
