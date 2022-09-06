@@ -1,8 +1,11 @@
 package com.custom.orm.mapper;
 
+import com.custom.orm.annotations.relations.JoinColumn;
+import com.custom.orm.annotations.relations.OneToOne;
 import com.custom.orm.metadata.MetaDataManager;
 import com.custom.orm.metadata.MetaDataManagerImpl;
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -20,8 +23,20 @@ public class EntitiesMapperImpl implements EntitiesMapper {
      * Please, note that it does not work with @ManyToMany.
      * Please, note that in the upcoming changes this method will work only if parent-entity has CascadeType "ALL" or "GET"
      */
+
     @Override
     public <T> String getFindQuery(Class<T> entityClass) {
+        String sql = "SELECT %s FROM %s %s";
+
+        return String.format(
+                sql,
+                getFieldsForSelect(entityClass),
+                metaDataManager.getTableName(entityClass),
+                getJoinScript(entityClass)
+        );
+    }
+
+    private <T> String getJoinScript(Class<T> entityClass) {
         String sql;
 
         Set<String> oneToOneForeignKeyClassNames = metaDataManager.getOneToOneForeignKeyClassNames(entityClass);
@@ -34,10 +49,11 @@ public class EntitiesMapperImpl implements EntitiesMapper {
                     + getParentFindQuery(manyToOneForeignKeyClassNames, entityClass);
             if (metaDataManager.hasForeignKey(entityClass))
                 sql += getChildFindQuery(entityClass);
+
+            return sql;
         } catch (ClassNotFoundException e) {
             throw new RuntimeException("Class not Found");
         }
-        return sql;
     }
 
     /**
@@ -84,5 +100,41 @@ public class EntitiesMapperImpl implements EntitiesMapper {
         result.delete(result.length() - 1, result.length());
 
         return result.toString();
+    }
+
+    @Override
+    public <T> String getFieldsForSelect(Class<T> entityClass, Class... entityClassesToAvoid) {
+        StringBuilder result = new StringBuilder();
+
+        Arrays.stream(entityClass.getDeclaredFields())
+                .filter(field -> !field.isAnnotationPresent(JoinColumn.class))
+                .filter(field -> !field.isAnnotationPresent(OneToOne.class))
+                .forEach(field -> result
+                                    .append(metaDataManager.getTableNameWithoutSchema(entityClass))
+                                    .append(".")
+                                    .append(metaDataManager.getColumnName(field))
+                                    .append(" AS ")
+                                    .append(getTableColumnName(entityClass, field))
+                                    .append(", "));
+
+        result.delete(result.length() - 2, result.length());
+
+        Arrays.stream(entityClass.getDeclaredFields())
+                .filter(field -> field.isAnnotationPresent(OneToOne.class))
+                .filter(field -> Arrays
+                        .stream(entityClassesToAvoid)
+                        .noneMatch(e -> e.equals(field.getType())))
+                .forEach(field -> result
+                        .append(", ")
+                        .append(getFieldsForSelect(field.getType(), entityClass)));
+
+        return result.toString();
+    }
+
+    @Override
+    public <T> String getTableColumnName(Class<T> entityClass, Field field) {
+        return metaDataManager.getTableNameWithoutSchema(entityClass)
+                + "_"
+                + metaDataManager.getColumnName(field);
     }
 }

@@ -4,6 +4,8 @@ import com.custom.orm.annotations.Id;
 import com.custom.orm.annotations.relations.JoinColumn;
 import com.custom.orm.annotations.relations.OneToOne;
 import com.custom.orm.enums.CascadeType;
+import com.custom.orm.mapper.EntitiesMapper;
+import com.custom.orm.mapper.EntitiesMapperImpl;
 import com.custom.orm.mapper.FieldsMapper;
 import com.custom.orm.mapper.FieldsMapperImpl;
 import com.custom.orm.metadata.MetaDataManager;
@@ -28,6 +30,8 @@ public class SessionImpl implements Session {
 
     TableCreator tableCreator = new TableCreator();
 
+    private final EntitiesMapper entitiesMapper = new EntitiesMapperImpl();
+
     @Override
     public Transaction beginTransaction() {
         transaction = new Transaction();
@@ -45,14 +49,14 @@ public class SessionImpl implements Session {
     @Override
     public <T> T findById(Class<T> object, Long key) {
 
-        String sql = "SELECT * FROM %s WHERE %s = ?";
+        String sql = "%s WHERE %s = ?;";
 
         Connection connection = transaction.getConnection();
 
         PreparedStatement preparedStatement = connection.prepareStatement(String.format(
                 sql,
-                metaDataManager.getTableName(object),
-                metaDataManager.getIdColumnName(object)));
+                entitiesMapper.getFindQuery(object),
+                metaDataManager.getTableNameWithoutSchema(object) + "." + "id"));
 
         preparedStatement.setLong(1, key);
 
@@ -68,7 +72,7 @@ public class SessionImpl implements Session {
 
         // Filling the fields a new instance of the object with the data receive from the database.
         for (Field field : object.getDeclaredFields()) {
-            fieldsMapper.fillFields(object, entity, resultSet, field);
+            fieldsMapper.fillField(object, entity, resultSet, field, null);
         }
         return entity;
     }
@@ -83,7 +87,7 @@ public class SessionImpl implements Session {
     @Override
     public <T> List<T> findAll(Class<T> object) {
 
-        String sql = "SELECT * FROM %s";
+        String sql = entitiesMapper.getFindQuery(object);
 
         Connection connection = transaction.getConnection();
 
@@ -100,7 +104,7 @@ public class SessionImpl implements Session {
             T entity = object.getDeclaredConstructor().newInstance();
             for (Field field : object.getDeclaredFields()) {
                 field.setAccessible(true);
-                fieldsMapper.fillFields(object, entity, resultSet, field);
+                fieldsMapper.fillField(object, entity, resultSet, field, null);
             }
             result.add(entity);
         }
@@ -119,7 +123,7 @@ public class SessionImpl implements Session {
     */
     @SneakyThrows
     @Override
-    public <T> void create(T object) {
+    public <T> boolean create(T object) {
 
         String sql = "INSERT INTO %s (%s) VALUES (%s)";
 
@@ -173,6 +177,7 @@ public class SessionImpl implements Session {
                 }
             }
         }
+        return true;
     }
 
     /*

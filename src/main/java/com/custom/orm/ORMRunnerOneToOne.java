@@ -37,14 +37,14 @@ public class ORMRunnerOneToOne {
         System.out.println("-----Find an entry in the table by id-----");
         User user1 = session.findById(User.class, user.getId());
         User userFromDB = session.findById(User.class , user.getId());
-        System.out.println("User firstname and lastname from DB: " + userFromDB.getFirstname() + " " + userFromDB.getLastname());
+        System.out.println("User from DB: " + userFromDB.toString());
         transaction.commit();
 
         //Find all entries in the table
         System.out.println("----Find all entries in the table----");
         transaction = session.beginTransaction();
         List<User> usersList = session.findAll(User.class);
-        System.out.println(usersList.toString());
+        System.out.println("Collection of entities obtained from the database: " + usersList);
         transaction.commit();
 
         //Delete an entry in the table

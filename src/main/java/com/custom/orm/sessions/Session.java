@@ -9,7 +9,7 @@ public interface Session {
 
     <T> List<T> findAll(Class<T> objectClass);
 
-    <T> void create(T object);
+    <T> boolean create(T object);
 
     <T> boolean update(T object);
 
