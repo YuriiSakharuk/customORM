@@ -18,12 +18,10 @@ public class EntitiesMapperImpl implements EntitiesMapper {
      * SELECT-query). It should form a row of JOIN-queries corresponding to the entity mapping (currently, it works,
      * if entity has any number of parent-mappings (so entity may have any number of @OneToOne(mappedBy),
      *
-     * @OneToMany(mappedBy) or @ManyToOne(mappedBy)), and/or any number of child-mapping. It does not work properly with
-     * composed primary keys, but this bug will be fixed soon.
-     * Please, note that it does not work with @ManyToMany.
+     * @OneToMany(mappedBy) or @ManyToOne(mappedBy)), and/or any number of child-mapping.
+     * Please, note that it does not work with @ManyToMany and @OneToMany.
      * Please, note that in the upcoming changes this method will work only if parent-entity has CascadeType "ALL" or "GET"
      */
-
     @Override
     public <T> String getFindQuery(Class<T> entityClass) {
         String sql = "SELECT %s FROM %s %s";
@@ -36,6 +34,9 @@ public class EntitiesMapperImpl implements EntitiesMapper {
         );
     }
 
+    /*
+    * Returns JOIN part of SQL query
+    * */
     private <T> String getJoinScript(Class<T> entityClass) {
         String sql;
 
@@ -102,6 +103,9 @@ public class EntitiesMapperImpl implements EntitiesMapper {
         return result.toString();
     }
 
+    /*
+    * gets all the fields' names for SELECT query
+    * */
     @Override
     public <T> String getFieldsForSelect(Class<T> entityClass, Class... entityClassesToAvoid) {
         StringBuilder result = new StringBuilder();
@@ -110,9 +114,7 @@ public class EntitiesMapperImpl implements EntitiesMapper {
                 .filter(field -> !field.isAnnotationPresent(JoinColumn.class))
                 .filter(field -> !field.isAnnotationPresent(OneToOne.class))
                 .forEach(field -> result
-                                    .append(metaDataManager.getTableNameWithoutSchema(entityClass))
-                                    .append(".")
-                                    .append(metaDataManager.getColumnName(field))
+                                    .append(getTableColumnValue(entityClass, field))
                                     .append(" AS ")
                                     .append(getTableColumnName(entityClass, field))
                                     .append(", "));
@@ -131,10 +133,22 @@ public class EntitiesMapperImpl implements EntitiesMapper {
         return result.toString();
     }
 
+    /**
+     * Сreates String for SQL AS name to parse in mapping in format tableName_columnName
+     */
     @Override
     public <T> String getTableColumnName(Class<T> entityClass, Field field) {
         return metaDataManager.getTableNameWithoutSchema(entityClass)
                 + "_"
+                + metaDataManager.getColumnName(field);
+    }
+
+    /**
+     * Сreates String for SQL AS value to parse in mapping in format tableName.columnName
+     */
+    private  <T> String getTableColumnValue(Class<T> entityClass, Field field) {
+        return metaDataManager.getTableNameWithoutSchema(entityClass)
+                + "."
                 + metaDataManager.getColumnName(field);
     }
 }
