@@ -73,6 +73,7 @@ public class EntitiesMapperImpl implements EntitiesMapper {
                     metaDataManager.getTableNameWithoutSchema(foreignKeyClass),
                     metaDataManager.getTableNameWithoutSchema(entityClass)
                             + "." + metaDataManager.getIdColumnName(entityClass),
+                    // separate method
                     foreignKeyClassName + "." + metaDataManager.getForeignKeyColumns(foreignKeyClass)
                             .stream()
                             .filter(field -> field.getType().isAssignableFrom(entityClass))
@@ -119,6 +120,7 @@ public class EntitiesMapperImpl implements EntitiesMapper {
                                     .append(getTableColumnName(entityClass, field))
                                     .append(", "));
 
+        // separate method to clean comma
         result.delete(result.length() - 2, result.length());
 
         Arrays.stream(entityClass.getDeclaredFields())
@@ -134,7 +136,7 @@ public class EntitiesMapperImpl implements EntitiesMapper {
     }
 
     /**
-     * Сreates String for SQL AS name to parse in mapping in format tableName_columnName
+     * Creates String for SQL AS name to parse in mapping in format tableName_columnName
      */
     @Override
     public <T> String getTableColumnName(Class<T> entityClass, Field field) {
@@ -144,7 +146,7 @@ public class EntitiesMapperImpl implements EntitiesMapper {
     }
 
     /**
-     * Сreates String for SQL AS value to parse in mapping in format tableName.columnName
+     * Creates String for SQL AS value to parse in mapping in format tableName.columnName
      */
     private  <T> String getTableColumnValue(Class<T> entityClass, Field field) {
         return metaDataManager.getTableNameWithoutSchema(entityClass)
