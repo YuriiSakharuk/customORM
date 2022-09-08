@@ -10,6 +10,8 @@ import java.util.Set;
 
 public interface MetaDataManager {
 
+    //todo: TablaDataManager interface
+    //todo FieldDataManager
     <T> String getTableName(Class<T> object);
 
     <T> String getIdColumnName(Class<T> object);
@@ -34,6 +36,7 @@ public interface MetaDataManager {
 
     String getComposedPrimaryKeyColumnsNames(Class<?> entityClass);
 
+    //todo: ForeignKeyDataManager
     boolean hasForeignKey(Class<?> entityClass);
 
     boolean isForeignKey(Field field);
@@ -54,10 +57,12 @@ public interface MetaDataManager {
 
     <T> Class getForeignKeyReferenceClass(Field field);
 
+    //todo: delete
     Set<String> getForeignKeyReferenceColumnNames(Class<?> entityClass);
 
     String getForeignKeyReferenceColumnName(Field field);
 
+    //todo: MappingDataManager
     <T> Set<String> getOneToOneForeignKeyClassNames(Class<T> entityClass);
 
     <T> Set<String> getOneToManyForeignKeyClassNames(Class<T> entityClass);

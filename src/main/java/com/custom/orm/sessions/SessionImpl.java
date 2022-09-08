@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+//todo: Class with final Strings
 public class SessionImpl implements Session {
 
     private Transaction transaction;
