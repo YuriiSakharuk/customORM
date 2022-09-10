@@ -1,6 +1,8 @@
 package com.custom.orm.sessions;
 
 import com.custom.orm.util.PropertiesReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.*;
@@ -9,7 +11,9 @@ import java.util.Properties;
 
 public class Transaction {
 
-    //  Database credentials
+    private final Logger log = LoggerFactory.getLogger(Transaction.class);
+
+
     private static final Properties properties;
 
     static {
@@ -24,37 +28,37 @@ public class Transaction {
     private static final String USER = properties.getProperty("db.username");
     private static final String PASS = properties.getProperty("db.password");
 
-    private Connection connection;
+    private Connection connection = null;
 
     // starts new connection
     public void begin() {
-        System.out.println("Starting connection...");
+        log.info("Starting connection...");
         try {
             connection = DriverManager.getConnection(DB_URL, USER, PASS);
             connection.setAutoCommit(false);
-            System.out.println("Connection was successfully started: " + connection);
+            log.info("Connection was successfully started: " + connection);
         } catch (SQLException e) {
             e.printStackTrace();
-            connection = null;
+            // custom exception throw
         }
     }
 
     // closing connection after saving applied changes
     public void commit() {
-        System.out.println("Committing connection...");
+        log.info("Committing connection...");
         try {
             connection.commit();
-            System.out.println("Connection was successfully committed: " + connection + "\n");
+            log.info("Connection was successfully committed: " + connection + "\n");
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
     public void rollback() {
-        System.out.println("Rollbacking connection");
+        log.info("Rollbacking connection");
         try {
             connection.rollback();
-            System.out.println("Connection was successfully rollbacked: " + connection + "\n");
+            log.info("Connection was successfully rollbacked: " + connection + "\n");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -62,10 +66,10 @@ public class Transaction {
 
     // closing connection without saving applied changes
     public void close() {
-        System.out.println("Closing connection");
+        log.info("Closing connection");
         try {
             connection.close();
-            System.out.println("Connection was successfully closed\n");
+            log.info("Connection was successfully closed\n");
         } catch (SQLException e) {
             e.printStackTrace();
         }
