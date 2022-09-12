@@ -1,5 +1,7 @@
 package com.custom.orm.sessions;
 
+import com.custom.orm.exceptions.ConnectionSQLException;
+import com.custom.orm.exceptions.PropertyNotFoundException;
 import com.custom.orm.util.PropertiesReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +22,7 @@ public class Transaction {
         try {
             properties = PropertiesReader.getProperties("app.properties");
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new PropertyNotFoundException(e);
         }
     }
 
@@ -38,8 +40,7 @@ public class Transaction {
             connection.setAutoCommit(false);
             log.info("Connection was successfully started: " + connection);
         } catch (SQLException e) {
-            e.printStackTrace();
-            // custom exception throw
+            throw new ConnectionSQLException(e);
         }
     }
 
@@ -50,7 +51,7 @@ public class Transaction {
             connection.commit();
             log.info("Connection was successfully committed: " + connection + "\n");
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ConnectionSQLException(e);
         }
     }
 
@@ -60,7 +61,7 @@ public class Transaction {
             connection.rollback();
             log.info("Connection was successfully rollbacked: " + connection + "\n");
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ConnectionSQLException(e);
         }
     }
 
@@ -71,7 +72,7 @@ public class Transaction {
             connection.close();
             log.info("Connection was successfully closed\n");
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ConnectionSQLException(e);
         }
     }
 
