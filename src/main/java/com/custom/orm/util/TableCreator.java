@@ -8,12 +8,17 @@ import com.custom.orm.annotations.relations.ManyToOne;
 import com.custom.orm.annotations.relations.OneToMany;
 import com.custom.orm.annotations.relations.OneToOne;
 import com.custom.orm.metadata.MetaDataManager;
-import com.custom.orm.metadata.MetaDataManagerImpl;
-
+import com.custom.orm.metadata.implementation.MetaDataManagerImpl;
+import org.apache.commons.lang3.StringUtils;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 
 public class TableCreator {
+
+    private final String EMPTY_LINE = StringUtils.EMPTY;
+    private final String NOT_NULL = "NOTNULL";
+    private final String UNIQUE = "UNIQUE";
+
     private final MetaDataManager metaDataManager = new MetaDataManagerImpl();
 
     /**
@@ -47,7 +52,7 @@ public class TableCreator {
      */
     private String getForeignKeyQuery(Class<?> entityClass) {
         if (!metaDataManager.hasForeignKey(entityClass))
-            return "";
+            return EMPTY_LINE;
 
         StringBuilder result = new StringBuilder();
         String sql = "CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s(%s)";
@@ -60,8 +65,7 @@ public class TableCreator {
             result.append(", ");
         }
 
-        if (result.length() > 1)
-            result.delete(result.length() - 2, result.length());
+        trimGetForeignKeyQuery(result);
 
         return result.toString();
     }
@@ -83,8 +87,8 @@ public class TableCreator {
                     metaDataManager.getColumnType(field),
                     getConstraints(field)));
 
-            if (getConstraints(field).length() < 1)
-                result.delete(result.length() - 3, result.length() - 2);
+            if (getConstraints(field).isEmpty())
+                trimGetTableNamesTypesConstraintsQuery(result);
         }
         return result;
     }
@@ -110,17 +114,26 @@ public class TableCreator {
      */
     private String getConstraints(Field field) {
         if (!field.isAnnotationPresent(Column.class))
-            return "";
+            return EMPTY_LINE;
 
         StringBuilder constraintQuery = new StringBuilder();
         Column column = field.getAnnotation(Column.class);
 
         if (!column.nullable())
-            constraintQuery.append("NOT NULL");
+            constraintQuery.append(NOT_NULL);
 
         if (column.unique())
-            constraintQuery.append("UNIQUE");
+            constraintQuery.append(UNIQUE);
 
         return constraintQuery.toString();
+    }
+
+    private void trimGetForeignKeyQuery (StringBuilder result){
+        if (result.length() > 1)
+            result.delete(result.length() - 2, result.length());
+    }
+
+    private void trimGetTableNamesTypesConstraintsQuery (StringBuilder result){
+        result.delete(result.length() - 3, result.length() - 2);
     }
 }

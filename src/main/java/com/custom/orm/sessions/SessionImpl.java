@@ -9,7 +9,7 @@ import com.custom.orm.mapper.EntitiesMapperImpl;
 import com.custom.orm.mapper.FieldsMapper;
 import com.custom.orm.mapper.FieldsMapperImpl;
 import com.custom.orm.metadata.MetaDataManager;
-import com.custom.orm.metadata.MetaDataManagerImpl;
+import com.custom.orm.metadata.implementation.MetaDataManagerImpl;
 import com.custom.orm.util.TableCreator;
 import lombok.SneakyThrows;
 
