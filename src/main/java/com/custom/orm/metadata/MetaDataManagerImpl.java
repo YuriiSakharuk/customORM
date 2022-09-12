@@ -80,7 +80,7 @@ public class MetaDataManagerImpl implements MetaDataManager {
      * */
     @SneakyThrows
     @Override
-    public <T> String getColumnValues(T object) {
+    public <T> String getPraparedColumnValues(T object) {
         List<Field> declaredFields = Arrays.asList(object.getClass().getDeclaredFields());
 
         return declaredFields.stream()
@@ -462,7 +462,7 @@ public class MetaDataManagerImpl implements MetaDataManager {
         return new HashSet<>();
     }
 
-    public <T> boolean tableExists (Connection connection, Class<T> entityClass) throws SQLException {
+    public <T> boolean checkTableExists(Connection connection, Class<T> entityClass) throws SQLException {
         DatabaseMetaData metaData = connection.getMetaData();
         ResultSet resultSet = metaData.getTables(
                 null, null, getTableNameWithoutSchema(entityClass), null);

@@ -16,7 +16,7 @@ public interface MetaDataManager {
 
     <T> String getIdColumnValues(T object) throws IllegalAccessException;
 
-    <T> String getColumnValues(T object);
+    <T> String getPraparedColumnValues(T object);
 
     <T> String getColumnNames(T object);
 
@@ -64,5 +64,5 @@ public interface MetaDataManager {
 
     <T>Set<String> getManyToOneForeignKeyClassNames(Class<T> entityClass);
 
-    <T> boolean tableExists (Connection connection, Class<T> entityClass) throws SQLException;
+    <T> boolean checkTableExists(Connection connection, Class<T> entityClass) throws SQLException;
 }
