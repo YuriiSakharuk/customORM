@@ -2,6 +2,7 @@ package com.custom.orm.mapper;
 
 import com.custom.orm.annotations.relations.JoinColumn;
 import com.custom.orm.annotations.relations.OneToOne;
+import com.custom.orm.exceptions.CustomClassNotFoundException;
 import com.custom.orm.metadata.MetaDataManager;
 import com.custom.orm.metadata.MetaDataManagerImpl;
 import java.lang.reflect.Field;
@@ -53,7 +54,7 @@ public class EntitiesMapperImpl implements EntitiesMapper {
 
             return sql;
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Class not Found");
+            throw new CustomClassNotFoundException(e);
         }
     }
 
