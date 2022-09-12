@@ -26,11 +26,19 @@ public interface MetaDataManager {
 
     <T> List<Field> getOneToOneDeclaredFields(T object);
 
+    //
+
     String getColumnName(Field field);
+
+    //
 
     <T> String getTableNameWithoutSchema(Class<T> object);
 
+    //
+
     String getColumnType(Field field);
+
+    //
 
     String getPrimaryKeyColumnName(Class<?> entityClass);
 
@@ -61,6 +69,8 @@ public interface MetaDataManager {
     Set<String> getForeignKeyReferenceColumnNames(Class<?> entityClass);
 
     String getForeignKeyReferenceColumnName(Field field);
+
+    //
 
     //todo: MappingDataManager
     <T> Set<String> getOneToOneForeignKeyClassNames(Class<T> entityClass);
