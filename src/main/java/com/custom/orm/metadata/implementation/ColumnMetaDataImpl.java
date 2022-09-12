@@ -1,15 +1,15 @@
-package com.custom.orm.metadata;
+package com.custom.orm.metadata.implementation;
 
 import com.custom.orm.annotations.Column;
 import com.custom.orm.annotations.Id;
 import com.custom.orm.annotations.relations.JoinColumn;
 import com.custom.orm.enums.FieldType;
-
+import com.custom.orm.metadata.ColumnMetaData;
 import java.lang.reflect.Field;
 
 import static java.util.Optional.ofNullable;
 
-public class ColumnMetaDataImpl extends TableMetaDataImpl implements ColumnMetaData{
+public class ColumnMetaDataImpl extends TableMetaDataImpl implements ColumnMetaData {
 
     /**
      * This method returns the name of the given column.

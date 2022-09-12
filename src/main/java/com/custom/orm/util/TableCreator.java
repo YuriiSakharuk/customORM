@@ -8,7 +8,7 @@ import com.custom.orm.annotations.relations.ManyToOne;
 import com.custom.orm.annotations.relations.OneToMany;
 import com.custom.orm.annotations.relations.OneToOne;
 import com.custom.orm.metadata.MetaDataManager;
-import com.custom.orm.metadata.MetaDataManagerImpl;
+import com.custom.orm.metadata.implementation.MetaDataManagerImpl;
 import org.apache.commons.lang3.StringUtils;
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -16,8 +16,6 @@ import java.util.Arrays;
 public class TableCreator {
 
     private final String EMPTY_LINE = StringUtils.EMPTY;
-    private final String SPACE = StringUtils.SPACE;
-    private final String COMMA = ",";
     private final String NOT_NULL = "NOTNULL";
     private final String UNIQUE = "UNIQUE";
 
@@ -64,7 +62,7 @@ public class TableCreator {
                     metaDataManager.getColumnName(field),
                     metaDataManager.getForeignKeyReferenceClassName(field),
                     metaDataManager.getForeignKeyReferenceColumnName(field)));
-            result.append(COMMA).append(SPACE);
+            result.append(", ");
         }
 
         trimGetForeignKeyQuery(result);

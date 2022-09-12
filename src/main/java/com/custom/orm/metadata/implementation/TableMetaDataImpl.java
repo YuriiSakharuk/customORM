@@ -1,11 +1,13 @@
-package com.custom.orm.metadata;
+package com.custom.orm.metadata.implementation;
 
 import com.custom.orm.annotations.Column;
 import com.custom.orm.annotations.Id;
 import com.custom.orm.annotations.Table;
 import com.custom.orm.annotations.relations.JoinColumn;
 import com.custom.orm.annotations.relations.OneToOne;
+import com.custom.orm.metadata.TableMetaData;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
@@ -19,7 +21,9 @@ import java.util.stream.Collectors;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
 
-public class TableMetaDataImpl implements TableMetaData{
+public class TableMetaDataImpl implements TableMetaData {
+
+    private final String EMPTY_LINE = StringUtils.EMPTY;
 
     /*
      * This method returns the name of the table in the database, which is the analog of the class on the Java application side.
@@ -29,7 +33,7 @@ public class TableMetaDataImpl implements TableMetaData{
     @Override
     public <T> String getTableName(Class<T> object) {
         return ofNullable(object.getAnnotation(Table.class))
-                .map(tableAnnotation -> tableAnnotation.schema().equals("") ?
+                .map(tableAnnotation -> tableAnnotation.schema().equals(EMPTY_LINE) ?
                         tableAnnotation.name() : tableAnnotation.schema() + "." + tableAnnotation.name())
                 .orElse(object.getSimpleName().toLowerCase());
     }

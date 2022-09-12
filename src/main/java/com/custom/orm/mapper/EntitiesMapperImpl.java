@@ -3,7 +3,7 @@ package com.custom.orm.mapper;
 import com.custom.orm.annotations.relations.JoinColumn;
 import com.custom.orm.annotations.relations.OneToOne;
 import com.custom.orm.metadata.MetaDataManager;
-import com.custom.orm.metadata.MetaDataManagerImpl;
+import com.custom.orm.metadata.implementation.MetaDataManagerImpl;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Set;

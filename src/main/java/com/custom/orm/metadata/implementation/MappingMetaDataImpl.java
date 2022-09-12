@@ -1,16 +1,16 @@
-package com.custom.orm.metadata;
+package com.custom.orm.metadata.implementation;
 
 import com.custom.orm.annotations.relations.ManyToOne;
 import com.custom.orm.annotations.relations.OneToMany;
 import com.custom.orm.annotations.relations.OneToOne;
 import com.custom.orm.enums.CascadeType;
-
+import com.custom.orm.metadata.MappingMetaData;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class MappingMetaDataImpl extends ForeignKeyMetaDataImpl implements  MappingMetaData{
+public class MappingMetaDataImpl extends ForeignKeyMetaDataImpl implements MappingMetaData {
 
     /**
      * This method returns a set of class names of fields of the given entity that are annotated with @OneToOne.

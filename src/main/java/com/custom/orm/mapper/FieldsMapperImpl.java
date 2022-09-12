@@ -1,20 +1,11 @@
 package com.custom.orm.mapper;
 
-import com.custom.orm.annotations.Column;
-import com.custom.orm.annotations.Id;
-import com.custom.orm.annotations.relations.JoinColumn;
-import com.custom.orm.annotations.relations.OneToOne;
-import com.custom.orm.metadata.MetaDataManager;
-import com.custom.orm.metadata.MetaDataManagerImpl;
 import lombok.SneakyThrows;
 
-import java.lang.ref.Reference;
 import java.lang.reflect.Field;
-import java.lang.reflect.Type;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.time.LocalDate;
-import java.util.Arrays;
 
 public class FieldsMapperImpl implements FieldsMapper {
 

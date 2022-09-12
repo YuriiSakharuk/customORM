@@ -1,15 +1,15 @@
-package com.custom.orm.metadata;
+package com.custom.orm.metadata.implementation;
 
 import com.custom.orm.annotations.Column;
 import com.custom.orm.annotations.ComposedPrimaryKey;
 import com.custom.orm.annotations.Id;
-
+import com.custom.orm.metadata.PrimaryKeyMetaData;
 import java.util.Arrays;
 
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
 
-public class PrimaryKeyMetaDataImpl extends ColumnMetaDataImpl implements PrimaryKeyMetaData{
+public class PrimaryKeyMetaDataImpl extends ColumnMetaDataImpl implements PrimaryKeyMetaData {
 
     /**
      * This method returns name of the column that is primary key.
