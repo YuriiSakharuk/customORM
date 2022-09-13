@@ -7,8 +7,8 @@ import com.custom.orm.annotations.relations.JoinColumn;
 import com.custom.orm.annotations.relations.ManyToOne;
 import com.custom.orm.annotations.relations.OneToMany;
 import com.custom.orm.annotations.relations.OneToOne;
-import com.custom.orm.metadata.MetaDataManager;
-import com.custom.orm.metadata.implementation.MetaDataManagerImpl;
+import com.custom.orm.metadata.*;
+import com.custom.orm.metadata.implementation.*;
 import org.apache.commons.lang3.StringUtils;
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -19,7 +19,13 @@ public class TableCreator {
     private final String NOT_NULL = "NOTNULL";
     private final String UNIQUE = "UNIQUE";
 
-    private final MetaDataManager metaDataManager = new MetaDataManagerImpl();
+    private final TableMetaData tableMetaData = new TableMetaDataImpl();
+
+    private final ColumnMetaData columnMetaData = new ColumnMetaDataImpl();
+
+    private final ForeignKeyMetaData fkMetaData = new ForeignKeyMetaDataImpl();
+
+    private final PrimaryKeyMetaData pkMetaData = new PrimaryKeyMetaDataImpl();
 
     /**
      * This method returns SQL-query that is creating table in database with proper constraints,
@@ -31,9 +37,9 @@ public class TableCreator {
         StringBuilder result = new StringBuilder();
 
         if (!entityClass.isAnnotationPresent(Entity.class))
-            throw new RuntimeException("Entity \"" + metaDataManager.getTableName(entityClass) + "\" not found!");
+            throw new RuntimeException("Entity \"" + tableMetaData.getTableName(entityClass) + "\" not found!");
 
-        result.append(String.format(sql, metaDataManager.getTableName(entityClass),
+        result.append(String.format(sql, tableMetaData.getTableName(entityClass),
                 getTableNamesTypesConstraintsQuery(entityClass),
                 getPrimaryKeyQuery(entityClass),
                 getForeignKeyQuery(entityClass)));
@@ -51,17 +57,17 @@ public class TableCreator {
      * Please, note that currently it is not working with composed primary keys. It will be fixed in upcoming changes.
      */
     private String getForeignKeyQuery(Class<?> entityClass) {
-        if (!metaDataManager.hasForeignKey(entityClass))
+        if (!fkMetaData.hasForeignKey(entityClass))
             return EMPTY_LINE;
 
         StringBuilder result = new StringBuilder();
         String sql = "CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s(%s)";
 
-        for (Field field : metaDataManager.getForeignKeyColumns(entityClass)) {
-            result.append(String.format(sql, metaDataManager.getForeignKeyName(entityClass, field),
-                    metaDataManager.getColumnName(field),
-                    metaDataManager.getForeignKeyReferenceClassName(field),
-                    metaDataManager.getForeignKeyReferenceColumnName(field)));
+        for (Field field : fkMetaData.getForeignKeyColumns(entityClass)) {
+            result.append(String.format(sql, fkMetaData.getForeignKeyName(entityClass, field),
+                    columnMetaData.getColumnName(field),
+                    fkMetaData.getForeignKeyReferenceClassName(field),
+                    fkMetaData.getForeignKeyReferenceColumnName(field)));
             result.append(", ");
         }
 
@@ -83,8 +89,8 @@ public class TableCreator {
                     !field.isAnnotationPresent(JoinColumn.class))
                 continue;
 
-            result.append(String.format("%s %s %s, ", metaDataManager.getColumnName(field),
-                    metaDataManager.getColumnType(field),
+            result.append(String.format("%s %s %s, ", columnMetaData.getColumnName(field),
+                    columnMetaData.getColumnType(field),
                     getConstraints(field)));
 
             if (getConstraints(field).isEmpty())
@@ -101,11 +107,11 @@ public class TableCreator {
 
         if (Arrays.stream(entityClass.getDeclaredFields())
                 .anyMatch(field -> field.isAnnotationPresent(ComposedPrimaryKey.class)))
-            return String.format(result, metaDataManager.getTableNameWithoutSchema(entityClass),
-                    metaDataManager.getComposedPrimaryKeyColumnsNames(entityClass));
+            return String.format(result, tableMetaData.getTableNameWithoutSchema(entityClass),
+                    pkMetaData.getComposedPrimaryKeyColumnsNames(entityClass));
 
-        return String.format(result, metaDataManager.getTableNameWithoutSchema(entityClass),
-                metaDataManager.getPrimaryKeyColumnName(entityClass));
+        return String.format(result, tableMetaData.getTableNameWithoutSchema(entityClass),
+                pkMetaData.getPrimaryKeyColumnName(entityClass));
     }
 
     /**

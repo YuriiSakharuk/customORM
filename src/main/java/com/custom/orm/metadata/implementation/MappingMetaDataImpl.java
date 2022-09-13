@@ -10,7 +10,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class MappingMetaDataImpl extends ForeignKeyMetaDataImpl implements MappingMetaData {
+public class MappingMetaDataImpl implements MappingMetaData {
 
     /**
      * This method returns a set of class names of fields of the given entity that are annotated with @OneToOne.

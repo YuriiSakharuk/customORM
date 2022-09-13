@@ -1,13 +1,19 @@
 package com.custom.orm.metadata.implementation;
 
 import com.custom.orm.annotations.relations.JoinColumn;
+import com.custom.orm.metadata.ColumnMetaData;
 import com.custom.orm.metadata.ForeignKeyMetaData;
+import com.custom.orm.metadata.TableMetaData;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class ForeignKeyMetaDataImpl extends PrimaryKeyMetaDataImpl implements ForeignKeyMetaData {
+public class ForeignKeyMetaDataImpl implements ForeignKeyMetaData {
+
+    private final TableMetaData tableMetaData = new TableMetaDataImpl();
+
+    private final ColumnMetaData columnMetaData = new ColumnMetaDataImpl();
 
     /**
      * This method checks if given entity contains foreign key. It returns true if there is at least one @JoinColumn
@@ -33,7 +39,7 @@ public class ForeignKeyMetaDataImpl extends PrimaryKeyMetaDataImpl implements Fo
     public Set<Field> getForeignKeyColumns(Class<?> entityClass) {
         if (!hasForeignKey(entityClass))
             throw new RuntimeException(
-                    "Table " + getTableName(entityClass) + " does not contain foreign key!");
+                    "Table " + tableMetaData.getTableName(entityClass) + " does not contain foreign key!");
 
         return Arrays.stream(entityClass.getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(JoinColumn.class))
@@ -47,11 +53,11 @@ public class ForeignKeyMetaDataImpl extends PrimaryKeyMetaDataImpl implements Fo
     public String getForeignKeyName(Class<?> entityClass, Field field) {
         if (!isForeignKey(field))
             throw new RuntimeException(
-                    "Column " + getColumnName(field) + " does not contain foreign key!");
+                    "Column " + columnMetaData.getColumnName(field) + " does not contain foreign key!");
 
         String result = "fk_%s_%s";
         return String.format(result, getForeignKeyReferenceClassName(field),
-                getTableNameWithoutSchema(entityClass));
+                tableMetaData.getTableNameWithoutSchema(entityClass));
     }
 
     /**
@@ -61,9 +67,9 @@ public class ForeignKeyMetaDataImpl extends PrimaryKeyMetaDataImpl implements Fo
     public String getForeignKeyReferenceClassName(Field field) {
         if (!isForeignKey(field))
             throw new RuntimeException(
-                    "Column " + getColumnName(field) + " does not contain foreign key!");
+                    "Column " + columnMetaData.getColumnName(field) + " does not contain foreign key!");
 
-        return getTableNameWithoutSchema(field.getType());
+        return tableMetaData.getTableNameWithoutSchema(field.getType());
     }
 
     /**
@@ -73,7 +79,7 @@ public class ForeignKeyMetaDataImpl extends PrimaryKeyMetaDataImpl implements Fo
     public <T> Class getForeignKeyReferenceClass(Field field) {
         if (!isForeignKey(field))
             throw new RuntimeException(
-                    "Column " + getColumnName(field) + " does not contain foreign key!");
+                    "Column " + columnMetaData.getColumnName(field) + " does not contain foreign key!");
 
         return field.getType();
     }
@@ -86,8 +92,8 @@ public class ForeignKeyMetaDataImpl extends PrimaryKeyMetaDataImpl implements Fo
     public String getForeignKeyReferenceColumnName(Field field) {
         if (!isForeignKey(field))
             throw new RuntimeException(
-                    "Column " + getColumnName(field) + " does not contain foreign key!");
+                    "Column " + columnMetaData.getColumnName(field) + " does not contain foreign key!");
 
-        return getIdColumnName(field.getType());
+        return tableMetaData.getIdColumnName(field.getType());
     }
 }
