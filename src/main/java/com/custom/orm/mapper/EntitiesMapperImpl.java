@@ -3,8 +3,14 @@ package com.custom.orm.mapper;
 import com.custom.orm.annotations.relations.JoinColumn;
 import com.custom.orm.annotations.relations.OneToOne;
 import com.custom.orm.exceptions.CustomClassNotFoundException;
-import com.custom.orm.metadata.MetaDataManager;
-import com.custom.orm.metadata.implementation.MetaDataManagerImpl;
+import com.custom.orm.metadata.ColumnMetaData;
+import com.custom.orm.metadata.ForeignKeyMetaData;
+import com.custom.orm.metadata.MappingMetaData;
+import com.custom.orm.metadata.TableMetaData;
+import com.custom.orm.metadata.implementation.ColumnMetaDataImpl;
+import com.custom.orm.metadata.implementation.ForeignKeyMetaDataImpl;
+import com.custom.orm.metadata.implementation.MappingMetaDataImpl;
+import com.custom.orm.metadata.implementation.TableMetaDataImpl;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Set;
@@ -12,7 +18,13 @@ import java.util.stream.Collectors;
 
 public class EntitiesMapperImpl implements EntitiesMapper {
 
-    private static final MetaDataManager metaDataManager = new MetaDataManagerImpl();
+    private final TableMetaData tableMetaData = new TableMetaDataImpl();
+
+    private final ColumnMetaData columnMetaData = new ColumnMetaDataImpl();
+
+    private final ForeignKeyMetaData fkMetaData = new ForeignKeyMetaDataImpl();
+
+    private final MappingMetaData mappingMetaData = new MappingMetaDataImpl();
 
     /**
      * This method returns SQL-query, that specifies JOIN-action for find-methods (this query should be attached to the
@@ -30,26 +42,26 @@ public class EntitiesMapperImpl implements EntitiesMapper {
         return String.format(
                 sql,
                 getFieldsForSelect(entityClass),
-                metaDataManager.getTableName(entityClass),
+                tableMetaData.getTableName(entityClass),
                 getJoinScript(entityClass)
         );
     }
 
     /*
-    * Returns JOIN part of SQL query
-    * */
+     * Returns JOIN part of SQL query
+     * */
     private <T> String getJoinScript(Class<T> entityClass) {
         String sql;
 
-        Set<String> oneToOneForeignKeyClassNames = metaDataManager.getOneToOneForeignKeyClassNames(entityClass);
-        Set<String> oneToManyForeignKeyClassNames = metaDataManager.getOneToManyForeignKeyClassNames(entityClass);
-        Set<String> manyToOneForeignKeyClassNames = metaDataManager.getManyToOneForeignKeyClassNames(entityClass);
+        Set<String> oneToOneForeignKeyClassNames = mappingMetaData.getOneToOneForeignKeyClassNames(entityClass);
+        Set<String> oneToManyForeignKeyClassNames = mappingMetaData.getOneToManyForeignKeyClassNames(entityClass);
+        Set<String> manyToOneForeignKeyClassNames = mappingMetaData.getManyToOneForeignKeyClassNames(entityClass);
 
         try {
             sql = getParentFindQuery(oneToOneForeignKeyClassNames, entityClass)
                     + getParentFindQuery(oneToManyForeignKeyClassNames, entityClass)
                     + getParentFindQuery(manyToOneForeignKeyClassNames, entityClass);
-            if (metaDataManager.hasForeignKey(entityClass))
+            if (fkMetaData.hasForeignKey(entityClass))
                 sql += getChildFindQuery(entityClass);
 
             return sql;
@@ -68,17 +80,17 @@ public class EntitiesMapperImpl implements EntitiesMapper {
 
         for (String className : classNames) {
             Class<?> foreignKeyClass = Class.forName(className);
-            String foreignKeyClassName = metaDataManager.getTableNameWithoutSchema(foreignKeyClass);
+            String foreignKeyClassName = tableMetaData.getTableNameWithoutSchema(foreignKeyClass);
 
             result.append(String.format("LEFT JOIN %s ON %s = %s ",
-                    metaDataManager.getTableNameWithoutSchema(foreignKeyClass),
-                    metaDataManager.getTableNameWithoutSchema(entityClass)
-                            + "." + metaDataManager.getIdColumnName(entityClass),
+                    tableMetaData.getTableNameWithoutSchema(foreignKeyClass),
+                    tableMetaData.getTableNameWithoutSchema(entityClass)
+                            + "." + tableMetaData.getIdColumnName(entityClass),
                     // separate method
-                    foreignKeyClassName + "." + metaDataManager.getForeignKeyColumns(foreignKeyClass)
+                    foreignKeyClassName + "." + fkMetaData.getForeignKeyColumns(foreignKeyClass)
                             .stream()
                             .filter(field -> field.getType().isAssignableFrom(entityClass))
-                            .map(metaDataManager::getColumnName)
+                            .map(columnMetaData::getColumnName)
                             .collect(Collectors.joining())));
         }
         return result.toString();
@@ -91,14 +103,14 @@ public class EntitiesMapperImpl implements EntitiesMapper {
         StringBuilder result = new StringBuilder();
         String sql = "LEFT JOIN %s ON %s = %s ";
 
-        for (Field field : metaDataManager.getForeignKeyColumns(entityClass)) {
-            Class referenceClass = metaDataManager.getForeignKeyReferenceClass(field);
-            String referenceClassName = metaDataManager.getForeignKeyReferenceClassName(field);
+        for (Field field : fkMetaData.getForeignKeyColumns(entityClass)) {
+            Class referenceClass = fkMetaData.getForeignKeyReferenceClass(field);
+            String referenceClassName = fkMetaData.getForeignKeyReferenceClassName(field);
 
             result.append(String.format(sql, referenceClassName,
-                    referenceClassName + "." + metaDataManager.getIdColumnName(referenceClass),
-                    metaDataManager.getTableNameWithoutSchema(entityClass) + "."
-                            + metaDataManager.getColumnName(field)));
+                    referenceClassName + "." + tableMetaData.getIdColumnName(referenceClass),
+                    tableMetaData.getTableNameWithoutSchema(entityClass) + "."
+                            + columnMetaData.getColumnName(field)));
         }
         result.delete(result.length() - 1, result.length());
 
@@ -106,8 +118,8 @@ public class EntitiesMapperImpl implements EntitiesMapper {
     }
 
     /*
-    * gets all the fields' names for SELECT query
-    * */
+     * gets all the fields' names for SELECT query
+     * */
     @Override
     public <T> String getFieldsForSelect(Class<T> entityClass, Class... entityClassesToAvoid) {
         StringBuilder result = new StringBuilder();
@@ -116,10 +128,10 @@ public class EntitiesMapperImpl implements EntitiesMapper {
                 .filter(field -> !field.isAnnotationPresent(JoinColumn.class))
                 .filter(field -> !field.isAnnotationPresent(OneToOne.class))
                 .forEach(field -> result
-                                    .append(getTableColumnValue(entityClass, field))
-                                    .append(" AS ")
-                                    .append(getTableColumnName(entityClass, field))
-                                    .append(", "));
+                        .append(getTableColumnValue(entityClass, field))
+                        .append(" AS ")
+                        .append(getTableColumnName(entityClass, field))
+                        .append(", "));
 
         // separate method to clean comma
         result.delete(result.length() - 2, result.length());
@@ -141,17 +153,17 @@ public class EntitiesMapperImpl implements EntitiesMapper {
      */
     @Override
     public <T> String getTableColumnName(Class<T> entityClass, Field field) {
-        return metaDataManager.getTableNameWithoutSchema(entityClass)
+        return tableMetaData.getTableNameWithoutSchema(entityClass)
                 + "_"
-                + metaDataManager.getColumnName(field);
+                + columnMetaData.getColumnName(field);
     }
 
     /**
      * Creates String for SQL AS value to parse in mapping in format tableName.columnName
      */
-    private  <T> String getTableColumnValue(Class<T> entityClass, Field field) {
-        return metaDataManager.getTableNameWithoutSchema(entityClass)
+    private <T> String getTableColumnValue(Class<T> entityClass, Field field) {
+        return tableMetaData.getTableNameWithoutSchema(entityClass)
                 + "."
-                + metaDataManager.getColumnName(field);
+                + columnMetaData.getColumnName(field);
     }
 }

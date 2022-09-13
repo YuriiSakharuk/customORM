@@ -8,8 +8,8 @@ import com.custom.orm.mapper.EntitiesMapper;
 import com.custom.orm.mapper.EntitiesMapperImpl;
 import com.custom.orm.mapper.FieldsMapper;
 import com.custom.orm.mapper.FieldsMapperImpl;
-import com.custom.orm.metadata.MetaDataManager;
-import com.custom.orm.metadata.implementation.MetaDataManagerImpl;
+import com.custom.orm.metadata.TableMetaData;
+import com.custom.orm.metadata.implementation.TableMetaDataImpl;
 import com.custom.orm.util.TableCreator;
 import lombok.SneakyThrows;
 
@@ -25,7 +25,7 @@ public class SessionImpl implements Session {
 
     private Transaction transaction;
 
-    MetaDataManager metaDataManager = new MetaDataManagerImpl();
+    private final TableMetaData tableMetaData = new TableMetaDataImpl();
 
     FieldsMapper fieldsMapper = new FieldsMapperImpl();
 
@@ -57,7 +57,7 @@ public class SessionImpl implements Session {
         PreparedStatement preparedStatement = connection.prepareStatement(String.format(
                 sql,
                 entitiesMapper.getFindQuery(object),
-                metaDataManager.getTableNameWithoutSchema(object) + "." + "id"));
+                tableMetaData.getTableNameWithoutSchema(object) + "." + "id"));
 
         preparedStatement.setLong(1, key);
 
@@ -93,7 +93,7 @@ public class SessionImpl implements Session {
         Connection connection = transaction.getConnection();
 
         PreparedStatement preparedStatement = connection.prepareStatement(String.format(sql,
-                metaDataManager.getTableName(object)));
+                tableMetaData.getTableName(object)));
 
         ResultSet resultSet = preparedStatement.executeQuery();
 
@@ -131,18 +131,18 @@ public class SessionImpl implements Session {
         Connection connection = transaction.getConnection();
 
         // Checking if corresponding table exists in database.
-        if (!metaDataManager.tableExists(connection, object.getClass()))
+        if (!tableMetaData.tableExists(connection, object.getClass()))
             connection.createStatement().execute(tableCreator.createTableIfNotExists(object));
 
         PreparedStatement preparedStatement = connection.prepareStatement(String.format(
                 sql,
-                metaDataManager.getTableName(object.getClass()),
-                metaDataManager.getColumnNames(object),
-                metaDataManager.getColumnValues(object)), Statement.RETURN_GENERATED_KEYS);
+                tableMetaData.getTableName(object.getClass()),
+                tableMetaData.getColumnNames(object),
+                tableMetaData.getColumnValues(object)), Statement.RETURN_GENERATED_KEYS);
 
         // Get all the declared fields of the object, excluding the fields when they are marked by the @OneToOne annotation
         // but not marked by the @JoinColumn annotation.
-        List<Field> declaredFields = metaDataManager.getDeclaredFields(object);
+        List<Field> declaredFields = tableMetaData.getDeclaredFields(object);
 
         // Iterate through the array of the object's declared fields and pass the value of each field to the PreparedStatement.
         for (int i = 1; i < declaredFields.size(); i++) {
@@ -167,7 +167,7 @@ public class SessionImpl implements Session {
         fieldsMapper.setObjectGeneratedKeys(object, preparedStatement);
 
         // Get declared fields that are marked with the @OneToOne annotation, but are not marked with the @JoinColumn annotation.
-        List<Field> oneToOneFields = metaDataManager.getOneToOneDeclaredFields(object);
+        List<Field> oneToOneFields = tableMetaData.getOneToOneDeclaredFields(object);
 
         for (Field oneToOneField : oneToOneFields) {
             if(Arrays.asList(oneToOneField.getAnnotation(OneToOne.class).cascade()).contains(CascadeType.ALL) ||
@@ -220,7 +220,7 @@ public class SessionImpl implements Session {
 
         return connection.prepareStatement(String.format(
                 sql,
-                metaDataManager.getTableName(object.getClass()),
+                tableMetaData.getTableName(object.getClass()),
                 columnAndValue,
                 objectIdValue)).execute();
     }
@@ -241,7 +241,7 @@ public class SessionImpl implements Session {
         Connection connection = transaction.getConnection();
 
         // Get declared fields that are marked with the @OneToOne annotation.
-        List<Field> oneToOneFields = metaDataManager.getOneToOneDeclaredFields(object);
+        List<Field> oneToOneFields = tableMetaData.getOneToOneDeclaredFields(object);
 
         // If the CascadeType value is "ALL" or "REMOVE" in the field of the object that is marked with the @OneToOne annotation,
         // then recursively call the delete method for the object that is the value in the field.
@@ -256,8 +256,8 @@ public class SessionImpl implements Session {
         }
 
         return connection.prepareStatement(String.format(sql,
-                metaDataManager.getTableName(object.getClass()),
-                metaDataManager.getIdColumnValues(object)))
+                tableMetaData.getTableName(object.getClass()),
+                tableMetaData.getIdColumnValues(object)))
                 .execute();
     }
 

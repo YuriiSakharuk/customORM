@@ -3,13 +3,16 @@ package com.custom.orm.metadata.implementation;
 import com.custom.orm.annotations.Column;
 import com.custom.orm.annotations.ComposedPrimaryKey;
 import com.custom.orm.annotations.Id;
+import com.custom.orm.metadata.ColumnMetaData;
 import com.custom.orm.metadata.PrimaryKeyMetaData;
 import java.util.Arrays;
 
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
 
-public class PrimaryKeyMetaDataImpl extends ColumnMetaDataImpl implements PrimaryKeyMetaData {
+public class PrimaryKeyMetaDataImpl implements PrimaryKeyMetaData {
+
+    private final ColumnMetaData columnMetaData = new ColumnMetaDataImpl();
 
     /**
      * This method returns name of the column that is primary key.
@@ -19,7 +22,7 @@ public class PrimaryKeyMetaDataImpl extends ColumnMetaDataImpl implements Primar
     public String getPrimaryKeyColumnName(Class<?> entityClass) {
         return Arrays.stream(entityClass.getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(Id.class))
-                .map(this::getColumnName)
+                .map(columnMetaData::getColumnName)
                 .collect(joining());
     }
 
