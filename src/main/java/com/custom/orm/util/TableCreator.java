@@ -21,7 +21,7 @@ public class TableCreator {
 
     private final MetaDataManager metaDataManager = new MetaDataManagerImpl();
 
-    /**
+g    /**
      * This method returns SQL-query that is creating table in database with proper constraints,
      * primary key and foreign key. It composes SQL-query, produced by other methods.
      */
