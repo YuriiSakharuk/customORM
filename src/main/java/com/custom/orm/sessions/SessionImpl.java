@@ -1,7 +1,6 @@
 package com.custom.orm.sessions;
 
 import com.custom.orm.annotations.Id;
-import com.custom.orm.annotations.relations.JoinColumn;
 import com.custom.orm.annotations.relations.OneToOne;
 import com.custom.orm.enums.CascadeType;
 import com.custom.orm.mapper.EntitiesMapper;
@@ -9,7 +8,8 @@ import com.custom.orm.mapper.EntitiesMapperImpl;
 import com.custom.orm.mapper.FieldsMapper;
 import com.custom.orm.mapper.FieldsMapperImpl;
 import com.custom.orm.metadata.MetaDataManager;
-import com.custom.orm.metadata.MetaDataManagerImpl;
+import com.custom.orm.metadata.implementation.MetaDataManagerImpl;
+import com.custom.orm.metadata.implementation.TableMetaDataImpl;
 import com.custom.orm.util.TableCreator;
 import lombok.SneakyThrows;
 
@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+//todo: Class with final Strings
 public class SessionImpl implements Session {
 
     private Transaction transaction;
@@ -138,47 +139,27 @@ public class SessionImpl implements Session {
                 CREATE_SQL_QUERY,
                 metaDataManager.getTableName(object.getClass()),
                 metaDataManager.getColumnNames(object),
-                metaDataManager.getPraparedColumnValues(object)), Statement.RETURN_GENERATED_KEYS);
+                metaDataManager.getPreparedColumnValues(object)), Statement.RETURN_GENERATED_KEYS);
+        metaDataManager.setObjectsFromFields(object, preparedStatement, (TableMetaDataImpl) metaDataManager, fieldsMapper);
 
-        // Get all the declared fields of the object, excluding the fields when they are marked by the @OneToOne annotation
-        // but not marked by the @JoinColumn annotation.
-        List<Field> declaredFields = metaDataManager.getDeclaredFields(object);
-
-        // Iterate through the array of the object's declared fields and pass the value of each field to the PreparedStatement.
-        for (int i = 1; i < declaredFields.size(); i++) {
-            Field field = declaredFields.get(i);
-            field.setAccessible(true);
-
-            // If the field has the @JoinColumn annotation, then we use reflection API
-            // to get the object contained in this field and get the key (id) from this object.
-            // This key is transferred to the PreparedStatement according to the column specified in @JoinColumn.
-            if(field.isAnnotationPresent(JoinColumn.class)){
-                Object fieldObject = object.getClass().getMethod("get" + fieldsMapper.firstLetterWordToUpperCase(field.getName())).invoke(object);
-                Long idFieldObject = (Long) fieldObject.getClass().getMethod("getId").invoke(fieldObject);
-
-                preparedStatement.setObject(i, idFieldObject);
-                continue;
-            }
-            preparedStatement.setObject(i, field.get(object));
-        }
-        preparedStatement.executeUpdate();
-
-        // Get the key (id) of the object that was added to the database and assign it to this object.
         fieldsMapper.setObjectGeneratedKeys(object, preparedStatement);
 
-        // Get declared fields that are marked with the @OneToOne annotation, but are not marked with the @JoinColumn annotation.
         List<Field> oneToOneFields = metaDataManager.getOneToOneDeclaredFields(object);
-
+        Object objectFromField;
         for (Field oneToOneField : oneToOneFields) {
-            if(Arrays.asList(oneToOneField.getAnnotation(OneToOne.class).cascade()).contains(CascadeType.ALL) ||
-                    Arrays.asList(oneToOneField.getAnnotation(OneToOne.class).cascade()).contains(CascadeType.ADD)){
-                Object obj = object.getClass().getMethod("get" + fieldsMapper.firstLetterWordToUpperCase(oneToOneField.getName())).invoke(object);
-                if(obj!=null) {
-                    this.create(obj);
+            if(checkAllOrAddCascadeType(oneToOneField)){
+                objectFromField = object.getClass().getMethod("get" + fieldsMapper.firstLetterWordToUpperCase(oneToOneField.getName())).invoke(object);
+                if(objectFromField!=null) {
+                    this.create(objectFromField);
                 }
             }
         }
         return true;
+    }
+
+    private boolean checkAllOrAddCascadeType(Field oneToOneField) {
+        return Arrays.asList(oneToOneField.getAnnotation(OneToOne.class).cascade()).contains(CascadeType.ALL) ||
+                Arrays.asList(oneToOneField.getAnnotation(OneToOne.class).cascade()).contains(CascadeType.ADD);
     }
 
     /**

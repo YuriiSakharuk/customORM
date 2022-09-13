@@ -1,40 +1,15 @@
 package com.custom.orm.mapper;
 
-import com.custom.orm.annotations.Column;
-import com.custom.orm.annotations.Id;
-import com.custom.orm.annotations.relations.JoinColumn;
-import com.custom.orm.annotations.relations.OneToOne;
-import com.custom.orm.metadata.MetaDataManager;
-import com.custom.orm.metadata.MetaDataManagerImpl;
 import lombok.SneakyThrows;
 
-import java.lang.ref.Reference;
 import java.lang.reflect.Field;
-import java.lang.reflect.Type;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.time.LocalDate;
-import java.util.Arrays;
 
 public class FieldsMapperImpl implements FieldsMapper {
 
     private final EntitiesMapper entitiesMapper = new EntitiesMapperImpl();
-
-    private final MetaDataManager metaDataManager = new MetaDataManagerImpl();
-
-    /*
-    * This method defines the logic of writing data from the database to a new instance
-    * of the object according to the annotations that mark the fields in the object class.
-    * The field of the object marked with the @Id annotation receives a record from the column of the table, which is the primary key.
-    * Fields marked with the @Column annotation receive data from table columns according to the name specified in the Column annotation.
-    * Fields marked with the annotation @OneToOne are skipped.
-    * Fields of the object that are not marked by any annotation are filled according to the name of this field.
-    * */
-//    @SneakyThrows
-//    @Override
-//    public <T> void fillFields(Class<T> object, T entity, ResultSet resultSet, Field field) {
-//        fillField(object, entity, resultSet, field, columnInfo);
-//    }
 
     /*
     * This method writes the data received from the database
@@ -58,18 +33,23 @@ public class FieldsMapperImpl implements FieldsMapper {
         if (field.getType().equals(String.class)) {
             String string = resultSet.getString(columnName);
             entityClass.getMethod(setterName, String.class).invoke(entity, string);
+
         } else if (field.getType().equals(LocalDate.class)) {
             LocalDate date = resultSet.getDate(columnName).toLocalDate();
             entityClass.getMethod(setterName, LocalDate.class).invoke(entity, date);
+
         } else if (field.getType().equals(Long.class)) {
             Long longVal = resultSet.getLong(columnName);
             entityClass.getMethod(setterName, Long.class).invoke(entity, longVal);
+
         } else if (field.getType().equals(Integer.class)){
             int diff = resultSet.getInt(columnName);
             entityClass.getMethod(setterName, field.getType()).invoke(entity, diff);
+
         } else if (previousEntity != null
                 && field.getType().equals(previousEntity.getClass())) {
             entityClass.getMethod(setterName, previousEntity.getClass()).invoke(entity, previousEntity);
+
         } else {
             Class childEntityClass = field.getType();
 
