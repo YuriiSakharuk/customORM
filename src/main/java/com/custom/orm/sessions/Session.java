@@ -11,9 +11,9 @@ public interface Session {
 
     <T> boolean create(T object);
 
-    <T> boolean update(T object);
+    <T> void update(T object);
 
-    <T> boolean delete(T object);
+    <T> void delete(T object);
 
     Transaction beginTransaction();
 

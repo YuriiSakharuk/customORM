@@ -1,6 +1,6 @@
 package com.custom.orm.metadata;
 
-public interface PrimaryKeyMetaData extends ColumnMetaData{
+public interface PrimaryKeyMetaData {
 
     String getPrimaryKeyColumnName(Class<?> entityClass);
 
