@@ -7,7 +7,6 @@ import com.custom.orm.annotations.relations.OneToOne;
 import com.custom.orm.enums.FieldType;
 import com.custom.orm.metadata.ColumnMetaData;
 import lombok.SneakyThrows;
-
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
@@ -17,6 +16,9 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
 
 public class ColumnMetaDataImpl implements ColumnMetaData {
+
+    private static final String COMMA_AND_SPACE = ", ";
+    private static final String QUESTION_MARK = "?";
 
     /**
      * This method returns the name of the given column.
@@ -125,8 +127,8 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
         return declaredFields.stream()
                 .filter(field -> !field.isAnnotationPresent(Id.class))
                 .filter(field -> !(field.isAnnotationPresent(OneToOne.class) && !field.isAnnotationPresent(JoinColumn.class)))
-                .map(field -> "?")
-                .collect(joining(", "));
+                .map(field -> QUESTION_MARK)
+                .collect(joining(COMMA_AND_SPACE));
     }
 
     /**
@@ -158,7 +160,7 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
                 sb.append(collect.get(i).getName());
             }
             if (i < collect.size() - 1) {
-                sb.append(", ");
+                sb.append(COMMA_AND_SPACE);
             }
         }
         return sb.toString();

@@ -23,6 +23,13 @@ public class EntitiesMapperImpl implements EntitiesMapper {
     private final ForeignKeyMetaData fkMetaData = new ForeignKeyMetaDataImpl();
     private final MappingMetaData mappingMetaData = new MappingMetaDataImpl();
 
+    private static final String FIND_QUERY = "SELECT %s FROM %s %s";
+    private static final String JOIN_QUERY = "LEFT JOIN %s ON %s = %s ";
+    private static final String DOT = ".";
+    private static final String UNDERSCORE = "_";
+    private static final String COMMA_AND_SPACE = ", ";
+    private static final String AS = " AS ";
+
     /**
      * This method returns SQL-query, that specifies JOIN-action for find-methods (this query should be attached to the
      * SELECT-query). It should form a row of JOIN-queries corresponding to the entity mapping (currently, it works,
@@ -34,10 +41,9 @@ public class EntitiesMapperImpl implements EntitiesMapper {
      */
     @Override
     public <T> String getFindQuery(Class<T> entityClass) {
-        String sql = "SELECT %s FROM %s %s";
 
         return String.format(
-                sql,
+                FIND_QUERY,
                 getFieldsForSelect(entityClass),
                 tableMetaData.getTableName(entityClass),
                 getJoinScript(entityClass)
@@ -79,12 +85,12 @@ public class EntitiesMapperImpl implements EntitiesMapper {
             Class<?> foreignKeyClass = Class.forName(className);
             String foreignKeyClassName = tableMetaData.getTableNameWithoutSchema(foreignKeyClass);
 
-            result.append(String.format("LEFT JOIN %s ON %s = %s ",
+            result.append(String.format(JOIN_QUERY,
                     tableMetaData.getTableNameWithoutSchema(foreignKeyClass),
                     tableMetaData.getTableNameWithoutSchema(entityClass)
-                            + "." + columnMetaData.getIdColumnName(entityClass),
+                            + DOT + columnMetaData.getIdColumnName(entityClass),
                     // separate method
-                    foreignKeyClassName + "." + fkMetaData.getForeignKeyColumns(foreignKeyClass)
+                    foreignKeyClassName + DOT + fkMetaData.getForeignKeyColumns(foreignKeyClass)
                             .stream()
                             .filter(field -> field.getType().isAssignableFrom(entityClass))
                             .map(columnMetaData::getColumnName)
@@ -98,18 +104,17 @@ public class EntitiesMapperImpl implements EntitiesMapper {
      */
     private <T> String getChildFindQuery(Class<T> entityClass) {
         StringBuilder result = new StringBuilder();
-        String sql = "LEFT JOIN %s ON %s = %s ";
 
         for (Field field : fkMetaData.getForeignKeyColumns(entityClass)) {
             Class referenceClass = fkMetaData.getForeignKeyReferenceClass(field);
             String referenceClassName = fkMetaData.getForeignKeyReferenceClassName(field);
 
-            result.append(String.format(sql, referenceClassName,
-                    referenceClassName + "." + columnMetaData.getIdColumnName(referenceClass),
-                    tableMetaData.getTableNameWithoutSchema(entityClass) + "."
+            result.append(String.format(JOIN_QUERY, referenceClassName,
+                    referenceClassName + DOT + columnMetaData.getIdColumnName(referenceClass),
+                    tableMetaData.getTableNameWithoutSchema(entityClass) + DOT
                             + columnMetaData.getColumnName(field)));
         }
-        result.delete(result.length() - 1, result.length());
+        trimChildFindQuery(result);
 
         return result.toString();
     }
@@ -117,6 +122,7 @@ public class EntitiesMapperImpl implements EntitiesMapper {
     /*
      * gets all the fields' names for SELECT query
      * */
+
     @Override
     public <T> String getFieldsForSelect(Class<T> entityClass, Class... entityClassesToAvoid) {
         StringBuilder result = new StringBuilder();
@@ -126,12 +132,12 @@ public class EntitiesMapperImpl implements EntitiesMapper {
                 .filter(field -> !field.isAnnotationPresent(OneToOne.class))
                 .forEach(field -> result
                         .append(getTableColumnValue(entityClass, field))
-                        .append(" AS ")
+                        .append(AS)
                         .append(getTableColumnName(entityClass, field))
-                        .append(", "));
+                        .append(COMMA_AND_SPACE));
 
         // separate method to clean comma
-        result.delete(result.length() - 2, result.length());
+        trimFieldsForSelect(result);
 
         Arrays.stream(entityClass.getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(OneToOne.class))
@@ -139,7 +145,7 @@ public class EntitiesMapperImpl implements EntitiesMapper {
                         .stream(entityClassesToAvoid)
                         .noneMatch(e -> e.equals(field.getType())))
                 .forEach(field -> result
-                        .append(", ")
+                        .append(COMMA_AND_SPACE)
                         .append(getFieldsForSelect(field.getType(), entityClass)));
 
         return result.toString();
@@ -151,7 +157,7 @@ public class EntitiesMapperImpl implements EntitiesMapper {
     @Override
     public <T> String getTableColumnName(Class<T> entityClass, Field field) {
         return tableMetaData.getTableNameWithoutSchema(entityClass)
-                + "_"
+                + UNDERSCORE
                 + columnMetaData.getColumnName(field);
     }
 
@@ -160,7 +166,15 @@ public class EntitiesMapperImpl implements EntitiesMapper {
      */
     private <T> String getTableColumnValue(Class<T> entityClass, Field field) {
         return tableMetaData.getTableNameWithoutSchema(entityClass)
-                + "."
+                + DOT
                 + columnMetaData.getColumnName(field);
+    }
+
+    private void trimChildFindQuery(StringBuilder result) {
+        result.delete(result.length() - 1, result.length());
+    }
+
+    private void trimFieldsForSelect(StringBuilder result) {
+        result.delete(result.length() - 2, result.length());
     }
 }

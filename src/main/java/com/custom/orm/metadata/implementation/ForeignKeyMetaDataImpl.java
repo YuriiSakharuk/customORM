@@ -1,6 +1,7 @@
 package com.custom.orm.metadata.implementation;
 
 import com.custom.orm.annotations.relations.JoinColumn;
+import com.custom.orm.exceptions.ForeignKeyNotFoundException;
 import com.custom.orm.metadata.ColumnMetaData;
 import com.custom.orm.metadata.ForeignKeyMetaData;
 import com.custom.orm.metadata.TableMetaData;
@@ -38,7 +39,7 @@ public class ForeignKeyMetaDataImpl implements ForeignKeyMetaData {
      */
     public Set<Field> getForeignKeyColumns(Class<?> entityClass) {
         if (!hasForeignKey(entityClass))
-            throw new RuntimeException(
+            throw new ForeignKeyNotFoundException(
                     "Table " + tableMetaData.getTableName(entityClass) + " does not contain foreign key!");
 
         return Arrays.stream(entityClass.getDeclaredFields())
@@ -52,7 +53,7 @@ public class ForeignKeyMetaDataImpl implements ForeignKeyMetaData {
     @Override
     public String getForeignKeyName(Class<?> entityClass, Field field) {
         if (!isForeignKey(field))
-            throw new RuntimeException(
+            throw new ForeignKeyNotFoundException(
                     "Column " + columnMetaData.getColumnName(field) + " does not contain foreign key!");
 
         String result = "fk_%s_%s";
@@ -66,7 +67,7 @@ public class ForeignKeyMetaDataImpl implements ForeignKeyMetaData {
     @Override
     public String getForeignKeyReferenceClassName(Field field) {
         if (!isForeignKey(field))
-            throw new RuntimeException(
+            throw new ForeignKeyNotFoundException(
                     "Column " + columnMetaData.getColumnName(field) + " does not contain foreign key!");
 
         return tableMetaData.getTableNameWithoutSchema(field.getType());
@@ -78,7 +79,7 @@ public class ForeignKeyMetaDataImpl implements ForeignKeyMetaData {
     @Override
     public <T> Class getForeignKeyReferenceClass(Field field) {
         if (!isForeignKey(field))
-            throw new RuntimeException(
+            throw new ForeignKeyNotFoundException(
                     "Column " + columnMetaData.getColumnName(field) + " does not contain foreign key!");
 
         return field.getType();
@@ -91,7 +92,7 @@ public class ForeignKeyMetaDataImpl implements ForeignKeyMetaData {
     @Override
     public String getForeignKeyReferenceColumnName(Field field) {
         if (!isForeignKey(field))
-            throw new RuntimeException(
+            throw new ForeignKeyNotFoundException(
                     "Column " + columnMetaData.getColumnName(field) + " does not contain foreign key!");
 
         return columnMetaData.getIdColumnName(field.getType());

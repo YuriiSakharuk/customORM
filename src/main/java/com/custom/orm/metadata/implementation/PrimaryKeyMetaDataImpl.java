@@ -14,6 +14,8 @@ public class PrimaryKeyMetaDataImpl implements PrimaryKeyMetaData {
 
     private final ColumnMetaData columnMetaData = new ColumnMetaDataImpl();
 
+    private final static String COMMA_AND_SPACE = ", ";
+
     /**
      * This method returns name of the column that is primary key.
      * It works only with primary key that consists of one column.
@@ -41,6 +43,6 @@ public class PrimaryKeyMetaDataImpl implements PrimaryKeyMetaData {
                         .map(Column::name)
                         .filter(name -> name.length() > 0)
                         .orElse(field.getName()))
-                .collect(joining(", "));
+                .collect(joining(COMMA_AND_SPACE));
     }
 }

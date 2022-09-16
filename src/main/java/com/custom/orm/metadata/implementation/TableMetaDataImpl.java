@@ -8,7 +8,8 @@ import static java.util.Optional.ofNullable;
 
 public class TableMetaDataImpl implements TableMetaData {
 
-    private final String EMPTY_LINE = StringUtils.EMPTY;
+    private static final String EMPTY_LINE = StringUtils.EMPTY;
+    private static final String DOT = ".";
 
     /**
      * This method returns the name of the table in the database, which is the analog of the class on the Java application side.
@@ -21,7 +22,7 @@ public class TableMetaDataImpl implements TableMetaData {
     public <T> String getTableName(Class<T> object) {
         return ofNullable(object.getAnnotation(Table.class))
                 .map(tableAnnotation -> tableAnnotation.schema().equals(EMPTY_LINE) ?
-                        tableAnnotation.name() : tableAnnotation.schema() + "." + tableAnnotation.name())
+                        tableAnnotation.name() : tableAnnotation.schema() + DOT + tableAnnotation.name())
                 .orElse(object.getSimpleName().toLowerCase());
     }
 
