@@ -94,6 +94,6 @@ public class ForeignKeyMetaDataImpl implements ForeignKeyMetaData {
             throw new RuntimeException(
                     "Column " + columnMetaData.getColumnName(field) + " does not contain foreign key!");
 
-        return tableMetaData.getIdColumnName(field.getType());
+        return columnMetaData.getIdColumnName(field.getType());
     }
 }

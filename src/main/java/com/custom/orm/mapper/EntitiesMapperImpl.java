@@ -19,11 +19,8 @@ import java.util.stream.Collectors;
 public class EntitiesMapperImpl implements EntitiesMapper {
 
     private final TableMetaData tableMetaData = new TableMetaDataImpl();
-
     private final ColumnMetaData columnMetaData = new ColumnMetaDataImpl();
-
     private final ForeignKeyMetaData fkMetaData = new ForeignKeyMetaDataImpl();
-
     private final MappingMetaData mappingMetaData = new MappingMetaDataImpl();
 
     /**
@@ -85,7 +82,7 @@ public class EntitiesMapperImpl implements EntitiesMapper {
             result.append(String.format("LEFT JOIN %s ON %s = %s ",
                     tableMetaData.getTableNameWithoutSchema(foreignKeyClass),
                     tableMetaData.getTableNameWithoutSchema(entityClass)
-                            + "." + tableMetaData.getIdColumnName(entityClass),
+                            + "." + columnMetaData.getIdColumnName(entityClass),
                     // separate method
                     foreignKeyClassName + "." + fkMetaData.getForeignKeyColumns(foreignKeyClass)
                             .stream()
@@ -108,7 +105,7 @@ public class EntitiesMapperImpl implements EntitiesMapper {
             String referenceClassName = fkMetaData.getForeignKeyReferenceClassName(field);
 
             result.append(String.format(sql, referenceClassName,
-                    referenceClassName + "." + tableMetaData.getIdColumnName(referenceClass),
+                    referenceClassName + "." + columnMetaData.getIdColumnName(referenceClass),
                     tableMetaData.getTableNameWithoutSchema(entityClass) + "."
                             + columnMetaData.getColumnName(field)));
         }

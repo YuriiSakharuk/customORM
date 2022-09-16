@@ -1,16 +1,16 @@
 package com.custom.orm.mapper;
 
+import com.custom.orm.metadata.implementation.TableMetaDataImpl;
+
 import java.lang.reflect.Field;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 public interface FieldsMapper {
 
-//    <T> void fillFields(Class<T> object, T entity, ResultSet resultSet, Field field);
-
     <T, E> void fillField(Class<T> object, T entity, ResultSet resultSet, Field field, E previousEntity);
 
-    <T> void setObjectGeneratedKeys(T object, PreparedStatement preparedStatement);
+    <T> void setGeneratedKeyToObject(T object, PreparedStatement preparedStatement);
 
-    String firstLetterWordToUpperCase(String fieldName);
+    <T> void setValuesFromFields(T object, PreparedStatement preparedStatement);
 }

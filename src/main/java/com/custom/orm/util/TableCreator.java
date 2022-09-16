@@ -3,6 +3,7 @@ package com.custom.orm.util;
 import com.custom.orm.annotations.Column;
 import com.custom.orm.annotations.ComposedPrimaryKey;
 import com.custom.orm.annotations.Entity;
+import com.custom.orm.annotations.Table;
 import com.custom.orm.annotations.relations.JoinColumn;
 import com.custom.orm.annotations.relations.ManyToOne;
 import com.custom.orm.annotations.relations.OneToMany;
@@ -11,7 +12,13 @@ import com.custom.orm.metadata.*;
 import com.custom.orm.metadata.implementation.*;
 import org.apache.commons.lang3.StringUtils;
 import java.lang.reflect.Field;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Arrays;
+
+import static java.util.Optional.ofNullable;
 
 public class TableCreator {
 
@@ -48,6 +55,14 @@ public class TableCreator {
             result.delete(result.length() - 4, result.length() - 2);
 
         return result.toString();
+    }
+
+    public <T> boolean checkTableExists(Connection connection, Class<T> entityClass) throws SQLException {
+        DatabaseMetaData metaData = connection.getMetaData();
+        ResultSet resultSet = metaData.getTables(
+                null, null, tableMetaData.getTableNameWithoutSchema(entityClass), null);
+
+        return resultSet.next();
     }
 
     /**
